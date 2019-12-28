@@ -1,5 +1,7 @@
-import subprocess
 import itertools
+import subprocess
+import sys
+import time
 
 def seeds():
     chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -13,4 +15,10 @@ print("Running tests ad infinitum. Press ctrl+C to quit.")
 
 for seed in seeds():
     print("seed: ", seed)
-    subprocess.call(["sh", "scripts/generate_test.sh", seed])
+    proc = subprocess.Popen(["sh", "scripts/generate_test.sh", seed])
+    try:
+        while proc.poll() is None:
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        proc.terminate()
+        sys.exit(proc.returncode)
