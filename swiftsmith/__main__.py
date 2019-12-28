@@ -18,6 +18,6 @@ print(x.string(scope=rootscope))
 
 f = rootscope.choose_function()
 print(f"""
-public func main(x: Int) -> Int {{
+public func main(_ x: Int) -> Int {{
     return {f.name}({", ".join(k + ": x" for k in f.arguments)})
 }}""")
