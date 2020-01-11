@@ -52,16 +52,15 @@ swift = SemanticPCFG(
         PProduction(statement, (returnstatement,), 0.),
 
         PProduction(expression("Int"), (Int(), " + ", expression("Int")), 0.1),
-        PProduction(expression("Int"), (Variable(), " + ", expression("Int")), 0.1),
+        PProduction(expression("Int"), (Variable(datatype="Int"), " + ", expression("Int")), 0.1),
         PProduction(expression("Int"), (Int(), " * ", expression("Int")), 0.1),
-        PProduction(expression("Int"), (Variable(), " * ", expression("Int")), 0.1),
+        PProduction(expression("Int"), (Variable(datatype="Int"), " * ", expression("Int")), 0.1),
         PProduction(expression("Int"), (Int(),), 0.3),
-        PProduction(expression("Int"), (Variable(),), 0.3),
+        PProduction(expression("Int"), (Variable(datatype="Int"),), 0.3),
 
         PProduction(expression("Bool"), (expression("Int"), " > ", expression("Int")), 0.2),
         PProduction(expression("Bool"), (expression("Int"), " == ", expression("Int")), 0.2),
-        PProduction(expression("Bool"), ("true",), 0.2),
-        PProduction(expression("Bool"), ("false",), 0.2),
+        PProduction(expression("Bool"), (Bool(),), 0.4),
 
         PProduction(declaration, (EOL(), "let ", Variable(declaration=True), " = ", expression("Int")), 0.3),
         PProduction(declaration, (EOL(), "var ", Variable(declaration=True, mutable=True), " = ", expression("Int")), 0.7),

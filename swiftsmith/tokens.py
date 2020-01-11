@@ -11,7 +11,8 @@ class Token(object):
     
     If a subclass of Token is used as a terminal in a production, then that type's
     constructor is called when a symbol in a parse tree is expanded using that
-    production.
+    production. The string method is called when converting the parse tree to the text
+    of a program.
     """
     def string(self, scope):
         raise NotImplementedError()
@@ -21,7 +22,8 @@ class Variable(Token):
     """
     Represents a Swift variable.
     """
-    def __init__(self, declaration=False, mutable=False):
+    def __init__(self, datatype=None, declaration=False, mutable=False):
+        self.datatype = datatype
         self.declaration = declaration
         self.mutable = mutable
 
@@ -39,12 +41,24 @@ class Variable(Token):
             if scope.variables:
                 return scope.choose_variable()
             else:
-                return Int().string(scope)
+                # if there are no variables of the correct type in scope, fall back to a
+                # literal value.
+                if self.datatype == "Int":
+                    return Int().string(scope)
+                elif self.datatype == "Bool":
+                    return Bool().string(scope)
+                else:
+                    raise ValueError(f"Cannot construct literal of type `{self.datatype}`")
 
 
 class Int(Token):
     def string(self, scope):
         return str(random.randint(0, 5))
+
+
+class Bool(Token):
+    def string(self, scope):
+        return random.choice(["true", "false"])
 
 
 class Function(Token):
