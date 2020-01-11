@@ -28,8 +28,13 @@ class Scope(Tree):
         self.functions.append(Scope.Function(name, arguments, returntype))
     
     def choose_variable(self, name=None, datatype=None, mutable=None):
-        # TODO: traverse enclosing scopes as well
-        candidates = self.variables
+        candidates = {var.name: var for var in self.variables}
+        for scope in self.ancestors():
+            for var in scope.variables:
+                if var.name not in candidates: # narrower scopes shadow broader ones
+                    candidates[var.name] = var
+        
+        candidates = list(candidates.values())
 
         if name:
             candidates = filter(lambda n: n.name == name, candidates)
