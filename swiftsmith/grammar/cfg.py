@@ -33,6 +33,9 @@ class Production(object):
     def __hash__(self):
         return hash((self.lhs, self.rhs))
 
+    def __eq__(self, other):
+        return self.lhs == other.lhs and self.rhs == other.rhs
+
 
 class CFG(tuple):
     """
@@ -75,6 +78,13 @@ class CFG(tuple):
                     self.nonterminals.add(symbol)
                 else:
                     self.terminals.add(symbol)
+
+    def __add__(self, other):
+        """
+        Produces a new grammar with the left addend's start symbol and the union of the
+        addends' productions.
+        """
+        return type(self)(self.start, super().__add__(other))
 
     @lru_cache(maxsize=1)
     def first_sets(self):

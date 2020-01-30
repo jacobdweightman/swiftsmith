@@ -42,6 +42,12 @@ class CFGTest(unittest.TestCase):
         
         with self.assertRaises(AssertionError):
             Production([], "asdf")
+
+    def test_identical_productions_are_equal(self):
+        p1 = Production(self.A, (self.B, self.E))
+        p2 = Production(self.A, (self.B, self.E))
+        assert not p1 is p2
+        self.assertEqual(p1, p2)
     
     def test_productions_print(self):
         p1 = Production(self.A, "a")
@@ -81,6 +87,33 @@ class CFGTest(unittest.TestCase):
     def test_CFG_hashes_dont_collide(self):
         G2 = CFG(self.T, [rule for rule in self.G])
         self.assertNotEqual(hash(G2), hash(self.G))
+    
+    def test_compose_CFGs(self):
+        S = Nonterminal("S")
+        T = Nonterminal("T")
+        G = CFG(
+            S,
+            [
+                Production(S, ("i", S)),
+                Production(S, (T,)),
+            ]
+        )
+        H = CFG(
+            T,
+            [
+                Production(T, ("j", T)),
+                Production(T, ("j",)),
+            ]
+        )
+        self.assertEqual(G + H, CFG(
+            S,
+            [
+                Production(S, ("i", S)),
+                Production(S, (T,)),
+                Production(T, ("j", T)),
+                Production(T, ("j",))
+            ]
+        ))
     
     def test_first_sets(self): 
         self.assertDictEqual(self.G.first_sets(), {
