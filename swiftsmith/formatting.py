@@ -20,6 +20,9 @@ class Block(Token):
         scope.defer(closure)
 
         return ""
+    
+    def __str__(self):
+        return f"Block({self.returntype or ''})"
 
 
 class EOL(Token):
@@ -28,9 +31,6 @@ class EOL(Token):
         for _ in scope.ancestors():
             i += 1
         return "\n" + "\t" * i
-
-########################################
-#   Nonterminals                       #
-########################################
-
-block = Nonterminal("BLOCK")
+    
+    def __str__(self):
+        return "\\n"

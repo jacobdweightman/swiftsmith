@@ -28,6 +28,11 @@ class Scope(Tree):
         self.functions.append(Scope.Function(name, arguments, returntype))
     
     def choose_variable(self, name=None, datatype=None, mutable=None):
+        """
+        Selects the name of a random variable that meets the given criteria.
+        
+        Note: throws an `IndexError` if no variables meet the criteria.
+        """
         candidates = {var.name: var for var in self.variables}
         for scope in self.ancestors():
             for var in scope.variables:
@@ -36,13 +41,14 @@ class Scope(Tree):
         
         candidates = list(candidates.values())
 
-        if name:
+        if name is not None:
             candidates = filter(lambda n: n.name == name, candidates)
-        if datatype:
+        if datatype is not None:
             candidates = filter(lambda n: n.name == name, candidates)
-        if mutable:
+        if mutable is not None:
             candidates = filter(lambda n: n.mutable == mutable, candidates)
         
+        candidates = list(candidates)
         return random.choice(candidates).name
     
     def choose_function(self, name=None, returntype=None):
