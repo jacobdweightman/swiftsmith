@@ -9,8 +9,13 @@ class Tree(object):
         if len(args) == 0:
             self.children = None
         elif len(args) == 1:
-            self.children = args[0]
-            for child in self.children:
+            self.children = []
+            for child in args[0]:
+                if not isinstance(child, Tree):
+                    # child should be the same kind of tree as self; using type(self)
+                    # matches the type of self and its children.
+                    child = type(self)(child)
+                self.children.append(child)
                 child.parent = self
         else:
             raise TypeError("Tree.__init__ takes a value and optionally a sequence of "
@@ -25,8 +30,8 @@ class Tree(object):
             node = node.parent
 
     def isleaf(self):
-        """True if this tree has no children."""
-        return not bool(self.children)
+        """True if this tree does not have children."""
+        return self.children is None
     
     def preorder(self):
         """A generator of the preorder traversal of this tree."""

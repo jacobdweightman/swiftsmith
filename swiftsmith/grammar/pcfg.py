@@ -44,7 +44,10 @@ class PCFG(CFG):
             #print("\nFrontier: ", tree.frontier, "\n")
             subtree = random.choice(tree.frontier)
             symbol = subtree.value
-            rule = random.choices(productions[symbol], weights=weights[symbol])[0]
+            try:
+                rule = random.choices(productions[symbol], weights=weights[symbol])[0]
+            except IndexError:
+                raise ValueError(f"Failed to expand symbol: {symbol}")
             #print("rule: ", rule)
             subtree.expand(rule.rhs)
 
