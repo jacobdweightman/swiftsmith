@@ -114,24 +114,3 @@ class CFGTest(unittest.TestCase):
                 Production(T, ("j",))
             ]
         ))
-    
-    def test_first_sets(self): 
-        self.assertDictEqual(self.G.first_sets(), {
-            self.E: {"(", "int"},
-            self.T: {"(", "int"},
-            self.X: {"+", ""},
-            self.Y: {"*", ""}
-        })
-    
-    def test_follow_sets(self):
-        self.assertDictEqual(self.G.follow_sets(), {
-            self.E: {"\0", ")"},
-            self.X: {"\0", ")"},
-            self.T: {"+", "\0", ")"},
-            self.Y: {"+", "\0", ")"},
-            "(": {"(", "int"},
-            ")": {"+", "\0", ")"},
-            "+": {"(", "int"},
-            "*": {"(", "int"},
-            "int": {"*", "+", "\0", ")"}
-        })

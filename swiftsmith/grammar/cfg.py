@@ -86,86 +86,6 @@ class CFG(tuple):
         """
         return type(self)(self.start, super().__add__(other))
 
-    @lru_cache(maxsize=1)
-    def first_sets(self):
-        """
-        For each symbol in the grammar, computes the set of terminals that may appear
-        first in a string derived from that symbol in the grammar.
-        
-        The return value is a dict, whose keys are symbols and whose values are their
-        first sets.
-        """
-        fs = _FirstSets()
-        for V in self.nonterminals:
-            fs[V] = set()
-
-        changed = False
-
-        for rule in self:
-            if not rule:
-                fs[rule.lhs].add("")
-                changed = True
-            elif not isinstance(rule.rhs[0], Nonterminal):
-                fs[rule.lhs].add(rule.rhs[0])
-                changed = True
-
-        while changed:
-            changed = False
-
-            for rule in self:
-                for symbol in rule.rhs:
-                    if "" not in fs[symbol]:
-                        diff = fs[symbol] - {""}
-                        if not diff.issubset(fs[rule.lhs]):
-                            fs[rule.lhs] |= diff
-                            changed = True
-                        break
-                else:
-                    if "" not in fs[rule.lhs]:
-                        fs[rule.lhs].add("")
-                        changed = True
-        return fs
-
-    @lru_cache(maxsize=1)
-    def follow_sets(self):
-        """
-        Computes the set of terminals in the grammar that may appear immediately after
-        the nonterminal v in some sentential form derivable from the start symbol.
-        
-        The return value is a dict, whose keys are symbols and whose values are their
-        follow sets.
-        """
-        first = self.first_sets()
-        follow = {symbol: set() for symbol in self.nonterminals | self.terminals}
-
-        follow[self.start].add("\0")
-
-        changed = True
-        while changed:
-            changed = False
-
-            for rule in self:
-                end_derives_empty = True
-                for i in range(len(rule.rhs)-1, -1, -1):
-                    # If A -> aBC and C => "", then Follow(A) is a subset of Follow(B)
-                    if end_derives_empty:
-                        diff = follow[rule.lhs]
-                        if not diff.issubset(follow[rule.rhs[i]]):
-                            follow[rule.rhs[i]] |= diff
-                            changed = True
-
-                        if "" not in first[rule.rhs[i]]:
-                            end_derives_empty = False
-                    
-                for i in range(len(rule.rhs) - 1):
-                    # If A -> aBC, then First(C) is a subset of Follow(B)
-                    diff = first[rule.rhs[i+1]] - {""}
-                    if not diff.issubset(follow[rule.rhs[i]]):
-                        follow[rule.rhs[i]] |= diff
-                        changed = True
-
-        return follow
-    
     def _empty_productions(self):
         """
         Returns the productions of the grammar that produce the empty string.
@@ -174,21 +94,6 @@ class CFG(tuple):
 
     def __str__(self):
         return "CFG:\n\t" + "\n\t".join(map(str, self))
-    
+
     def __hash__(self):
         return hash((self.start, super().__hash__()))
-
-
-class _FirstSets(dict):
-    """
-    A dictionary of symbols and their first sets.
-
-    This class has an overloaded `__getitem__` method so that no memory is wasted
-    storing the first sets of terminals, since these are trivial to compute and complex
-    grammars may have very many of them.
-    """
-    def __getitem__(self, key):
-        if isinstance(key, Nonterminal):
-            return super().__getitem__(key)
-        else:
-            return {key}
