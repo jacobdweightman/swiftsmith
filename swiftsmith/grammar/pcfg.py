@@ -2,6 +2,7 @@ from swiftsmith.grammar.cfg import Nonterminal, Production, CFG
 from swiftsmith.grammar.parsetree import ParseTree
 
 import random
+import copy
 
 
 class PProduction(Production):
@@ -49,7 +50,7 @@ class PCFG(CFG):
             except IndexError:
                 raise ValueError(f"Failed to expand symbol: {symbol}")
             #print("rule: ", rule)
-            subtree.expand(rule.rhs)
+            subtree.expand(copy.deepcopy(rule.rhs))
 
         return tree
     

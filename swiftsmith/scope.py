@@ -44,7 +44,7 @@ class Scope(Tree):
         if name is not None:
             candidates = filter(lambda n: n.name == name, candidates)
         if datatype is not None:
-            candidates = filter(lambda n: n.name == name, candidates)
+            candidates = filter(lambda n: n.datatype == datatype, candidates)
         if mutable is not None:
             candidates = filter(lambda n: n.mutable == mutable, candidates)
         

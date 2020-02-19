@@ -1,6 +1,7 @@
 from .grammar import Nonterminal, PProduction
 from .expression import expression
 from .formatting import EOL
+from .scope import Scope
 from .semantics import Token, SemanticPCFG
 from .names import identifier
 
@@ -13,11 +14,14 @@ class Declaration(Token):
     Represents the declaration of a constant or variable which would appear on the left
     side of an assignment.
     """
+    required_annotations = set(["name"])
+
     def __init__(self, datatype, mutable=False):
+        super().__init__()
         self.datatype = datatype
         self.mutable = mutable
 
-    def string(self, scope):
+    def annotate(self, scope: Scope):
         name = next(identifier)
 
         # This name isn't usable in a declaration with an initial value. We defer
@@ -25,8 +29,12 @@ class Declaration(Token):
         closure = (lambda: scope.declare(name, self.datatype, self.mutable))
         scope.defer(closure)
 
+        self.annotations["name"] = name
+    
+    def string(self):
+        assert self.is_annotated()
         mutability = "var " if self.mutable else "let "
-        return mutability + name
+        return mutability + self.annotations["name"]
     
     def __str__(self):
         mutability = "var" if self.mutable else "let"

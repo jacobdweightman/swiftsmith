@@ -14,19 +14,34 @@ import random
 ########################################
 
 class Function(Token):
-    def string(self, scope: Scope):
-        # TODO: Declare function
-        name = next(identifier)
+    required_annotations = set(["name", "arguments", "returntype"])
+
+    def annotate(self, scope: Scope):
+        self.annotations["name"] = next(identifier)
 
         arguments = {}
         for _ in range(random.randint(0, 3)):
             arguments[next(identifier)] = "Int"
+        self.annotations["arguments"] = arguments
 
-        returntype = "Int"
-        scope.declare_func(name, arguments, returntype)
+        # TODO: allow non-Int return types
+        self.annotations["returntype"] = "Int"
+
+        scope.declare_func(
+            self.annotations["name"],
+            self.annotations["arguments"],
+            self.annotations["returntype"]
+        )
+
+    def string(self):
+        assert self.is_annotated()
+        name = self.annotations["name"]
+        arguments = self.annotations["arguments"]
+        returntype = self.annotations["returntype"]
+
         argstring = ', '.join(k + ": " + v for (k,v) in arguments.items())
-
-        return name + "(" + argstring + ") -> Int"
+        
+        return f"{name}({argstring}) -> {returntype}"
 
 ########################################
 #   Nonterminals                       #

@@ -1,5 +1,6 @@
 from .grammar import Nonterminal, PProduction
 from .semantics import Token, SemanticPCFG
+from .scope import Scope
 
 import random
 
@@ -9,8 +10,14 @@ import random
 
 class Int(Token):
     """Represents an integer literal token."""
-    def string(self, scope):
-        return str(random.randint(0, 5))
+    required_annotations = set(["value"])
+
+    def annotate(self, scope: Scope):
+        self.annotations["value"] = random.randint(0, 5)
+    
+    def string(self):
+        assert self.is_annotated()
+        return str(self.annotations["value"])
 
     def __str__(self):
         return "Int()"
@@ -18,8 +25,14 @@ class Int(Token):
 
 class Bool(Token):
     """Represents a boolean literal token."""
-    def string(self, scope):
-        return random.choice(["true", "false"])
+    required_annotations = set(["value"])
+
+    def annotate(self, scope: Scope):
+        self.annotations["value"] = random.choice(["true", "false"])
+    
+    def string(self):
+        assert self.is_annotated()
+        return self.annotations["value"]
 
     def __str__(self):
         return "Bool()"
@@ -27,22 +40,28 @@ class Bool(Token):
 
 class Variable(Token):
     """Represents a constant or variable which may appear in an expression."""
+    required_annotations = set(["value"])
     def __init__(self, datatype, mutable=False):
+        super().__init__()
         self.datatype = datatype
         self.mutable = mutable
 
-    def string(self, scope):
-        if scope.variables:
-            return scope.choose_variable()
-        else:
-            # if there are no variables of the correct type in scope, fall back to a
-            # literal value.
+    def annotate(self, scope: Scope):
+        try:
+            self.annotations["value"] = scope.choose_variable(datatype=self.datatype, mutable=self.mutable)
+        except IndexError:
             if self.datatype == "Int":
-                return Int().string(scope)
+                substitute = Int()
             elif self.datatype == "Bool":
-                return Bool().string(scope)
+                substitute = Bool()
             else:
                 raise ValueError(f"Cannot construct literal of type `{self.datatype}`")
+            substitute.annotate(scope)
+            self.annotations["value"] = substitute.string()
+
+    def string(self):
+        assert self.is_annotated()
+        return self.annotations["value"]
     
     def __str__(self):
         return f"Variable(datatype={self.datatype}, mutable={self.mutable})"

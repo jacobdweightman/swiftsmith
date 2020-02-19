@@ -10,15 +10,17 @@ class Block(Token):
     def __init__(self, returntype=None):
         self.returntype = returntype
     
-    def string(self, scope):
+    def annotate(self, scope: Scope):
         # "push" a new scope nested in the current one
-        scope.next_scope = Scope(parent=scope)
+        scope.children.append(Scope(parent=scope))
+        scope.next_scope = scope.children[-1]
 
         def closure():
             # "pop" the scope once its content has been generated
             scope.next_scope = scope
         scope.defer(closure)
-
+    
+    def string(self):
         return ""
     
     def __str__(self):
@@ -26,11 +28,17 @@ class Block(Token):
 
 
 class EOL(Token):
-    def string(self, scope):
+    required_annotations = set(["depth"])
+
+    def annotate(self, scope: Scope):
         i = 0
         for _ in scope.ancestors():
             i += 1
-        return "\n" + "\t" * i
+        self.annotations["depth"] = i
+
+    def string(self):
+        assert self.is_annotated()
+        return "\n" + "\t" * self.annotations["depth"]
     
     def __str__(self):
         return "\\n"

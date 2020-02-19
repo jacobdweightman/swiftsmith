@@ -1,34 +1,67 @@
 from .grammar import ParseTree, PCFG
 from .scope import Scope
 
-class Token(object):
+class Annotatable(object):
     """
-    The base class of all types of tokens in a grammar.
+    Represents a value which may have annotations as would appear in a semantic parse
+    tree.
+    """
+    required_annotations: set = set([])
+
+    def __init__(self, *args, **kwargs):
+        self.annotations = {}
+    
+    def is_annotated(self) -> bool:
+        return self.__class__.required_annotations.issubset(self.annotations)
+    
+    def annotate(self, scope: Scope):
+        raise NotImplementedError(f"'{self.__class__}' does not implement 'annotate(scope)'")
+
+    def string(self):
+        raise NotImplementedError(f"'{self.__class__}' does not implement 'string()'")
+
+
+class Token(Annotatable):
+    """
+    Represents a "terminal" string in a context free grammar, but whose exact string
+    value depends on its context.
     
     If a subclass of Token is used as a terminal in a production, then that type's
     constructor is called when a symbol in a parse tree is expanded using that
-    production. The string method is called when converting the parse tree to the text
-    of a program.
+    production. The `annotate` method will be called by the `annotate` method of the
+    `SemanticParseTree`. The string value of the token is then given by the `string`
+    method, which is called by the `string` method of the `SemanticParseTree`.
     """
-    def string(self, scope):
-        raise NotImplementedError()
+    pass
 
 
 class SemanticParseTree(ParseTree):
-    def string(self, scope=Scope()):
+    def annotate(self, scope=Scope()):
         """
-        Get the string of terminals represented by this parse tree.
+        Add annotations with semantic information to nodes of this tree.
+        
+        Performs a preorder, depth-first traversal of the tree, annotating nodes with
+        any required semantic (context-dependent) information from their neighbors.
         """
-        if self.isleaf():
-            if isinstance(self.value, Token):
-                return self.value.string(scope)
-            return str(self.value)
+        # TODO: check only for strings once `Nonterminals` are `Annotatable`.
+        if isinstance(self.value, Annotatable):
+            self.value.annotate(scope.next_scope)
         
         scope.push_deferred()
-        children = [child.string(scope=scope.next_scope) for child in self.children]
+        if self.children is not None:
+            for child in self.children:
+                child.annotate(scope=scope.next_scope)
         scope.pop_deferred()
+    
+    def string(self):
+        """Get the string of terminals represented by this parse tree."""
+        if self.isleaf():
+            if isinstance(self.value, Token):
+                return self.value.string()
+            return str(self.value)
+        
+        children = [child.string() for child in self.children]
         return "".join(children)
-
 
 class SemanticPCFG(PCFG):
     """
