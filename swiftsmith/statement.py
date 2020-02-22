@@ -1,5 +1,5 @@
 from .grammar import Nonterminal, PProduction
-from .expression import expression
+from .expression import Expression
 from .formatting import EOL
 from .scope import Scope
 from .semantics import Token, SemanticPCFG
@@ -55,8 +55,8 @@ declaration = Nonterminal("DECLARATION")
 statement_grammar = SemanticPCFG(
     assignment,
     [
-        PProduction(assignment, (EOL(), Declaration("Int"), " = ", expression("Int")), 0.3),
-        PProduction(assignment, (EOL(), Declaration("Int", mutable=True), " = ", expression("Int")), 0.3),
+        PProduction(assignment, (EOL(), Declaration("Int"), " = ", Expression("Int")), 0.3),
+        PProduction(assignment, (EOL(), Declaration("Int", mutable=True), " = ", Expression("Int")), 0.3),
         #PProduction(assignment, (EOL(), Variable("Int"), " = ", expression("Int")), 0.7),
     ]
 )

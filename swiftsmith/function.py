@@ -1,7 +1,7 @@
 from .grammar import Nonterminal, PProduction
 from .scope import Scope
 from .branch import branch_statement
-from .expression import expression
+from .expression import Expression
 from .formatting import EOL, Block
 from .statement import assignment
 from .semantics import Token, PCFG
@@ -63,7 +63,7 @@ function_grammar = PCFG(
         PProduction(block, (Block(), statements), 1.0),
 
         PProduction(statements, (statement, statements), 0.7),
-        PProduction(statements, (EOL(), "return ", expression("Int")), 0.3),
+        PProduction(statements, (EOL(), "return ", Expression("Int")), 0.3),
         PProduction(statement, (assignment,), 0.7),
         PProduction(statement, (branch_statement,), 0.3)
     ]

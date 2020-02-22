@@ -1,4 +1,4 @@
-from .grammar import ParseTree, PCFG
+from .grammar import ParseTree, PCFG, Nonterminal
 from .scope import Scope
 
 class Annotatable(object):
@@ -19,6 +19,18 @@ class Annotatable(object):
 
     def string(self):
         raise NotImplementedError(f"'{self.__class__}' does not implement 'string()'")
+
+
+class SemanticNonterminal(Nonterminal, Annotatable):
+    """
+    Represents a nonterminal symbol in a grammar which may have additional context-
+    dependent information attached through annotations.
+    """
+    def __new__(cls, *args, **kwargs):
+        return str.__new__(cls, cls.__name__)
+    
+    def __init__(self, *args, **kwargs):
+        Annotatable.__init__(self, *args, **kwargs)
 
 
 class Token(Annotatable):

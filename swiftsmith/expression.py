@@ -1,5 +1,5 @@
 from .grammar import Nonterminal, PProduction
-from .semantics import Token, SemanticPCFG
+from .semantics import Token, SemanticNonterminal, SemanticPCFG
 from .scope import Scope
 
 import random
@@ -70,26 +70,50 @@ class Variable(Token):
 #   Nonterminals                       #
 ########################################
 
-def expression(t):
-    """Represents an expression that resolves to a value of type `t`."""
-    return Nonterminal(f"EXPRESSION<{t}>")
+class Expression(SemanticNonterminal):
+    """Represents an expression of a particular type."""
+    required_annotations = set(["datatype"])
+    
+    def __init__(self, datatype):
+        super().__init__()
+        self.datatype = datatype
+
+        # if a datatype is not provided, it must be inferred later.
+        if datatype is not None:
+            self.annotations["datatype"] = datatype
+    
+    def annotate(self, scope: Scope):
+        # TODO: infer expression types if/when it becomes useful.
+        if "datatype" not in self.annotations:
+            raise NotImplementedError()
+
+    def __eq__(self, other):
+        # Two expression symbols must be of the same datatype to be equal.
+        return super().__eq__(other) and self.datatype == other.datatype
+    
+    def __hash__(self):
+        # because we overload __eq__, we must overload __hash__ as well.
+        return hash((super().__hash__(), self.datatype))
+    
+    def __str__(self):
+        return f"Expression<{self.datatype}>"
 
 ########################################
 #   Grammar                            #
 ########################################
 
 expression_grammar = SemanticPCFG(
-    expression("Int"),
+    Expression("Int"),
     [
-        PProduction(expression("Int"), (Int(), " + ", expression("Int")), 0.1),
-        PProduction(expression("Int"), (Variable("Int"), " + ", expression("Int")), 0.1),
-        PProduction(expression("Int"), (Int(), " * ", expression("Int")), 0.1),
-        PProduction(expression("Int"), (Variable("Int"), " * ", expression("Int")), 0.1),
-        PProduction(expression("Int"), (Int(),), 0.3),
-        PProduction(expression("Int"), (Variable("Int"),), 0.3),
+        PProduction(Expression("Int"), (Int(), " + ", Expression("Int")), 0.1),
+        PProduction(Expression("Int"), (Variable("Int"), " + ", Expression("Int")), 0.1),
+        PProduction(Expression("Int"), (Int(), " * ", Expression("Int")), 0.1),
+        PProduction(Expression("Int"), (Variable("Int"), " * ", Expression("Int")), 0.1),
+        PProduction(Expression("Int"), (Int(),), 0.3),
+        PProduction(Expression("Int"), (Variable("Int"),), 0.3),
 
-        PProduction(expression("Bool"), (expression("Int"), " > ", expression("Int")), 0.2),
-        PProduction(expression("Bool"), (expression("Int"), " == ", expression("Int")), 0.2),
-        PProduction(expression("Bool"), (Bool(),), 0.4),
+        PProduction(Expression("Bool"), (Expression("Int"), " > ", Expression("Int")), 0.2),
+        PProduction(Expression("Bool"), (Expression("Int"), " == ", Expression("Int")), 0.2),
+        PProduction(Expression("Bool"), (Bool(),), 0.4),
     ]
 )

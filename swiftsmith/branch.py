@@ -1,4 +1,4 @@
-from .expression import expression
+from .expression import Expression
 from .formatting import Block, EOL
 from .grammar import Nonterminal, PProduction
 from .statement import assignment
@@ -34,7 +34,7 @@ branch_grammar = SemanticPCFG(
 
         PProduction(conditionlist, (condition,), 0.8),
         PProduction(conditionlist, (condition, ", ", conditionlist), 0.2),
-        PProduction(condition, (expression("Bool"),), 1.0),
+        PProduction(condition, (Expression("Bool"),), 1.0),
 
         PProduction(block, (Block(), statements), 1.0),
         PProduction(statements, (statement, statements), 0.6),
