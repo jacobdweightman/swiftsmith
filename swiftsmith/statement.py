@@ -2,7 +2,7 @@ from .grammar import Nonterminal, PProduction
 from .expression import Expression
 from .formatting import EOL
 from .scope import Scope
-from .semantics import Token, SemanticPCFG
+from .semantics import Token, SemanticPCFG, SemanticParseTree
 from .names import identifier
 
 ########################################
@@ -21,13 +21,13 @@ class Declaration(Token):
         self.datatype = datatype
         self.mutable = mutable
 
-    def annotate(self, scope: Scope):
+    def annotate(self, scope: Scope, context: SemanticParseTree):
         name = next(identifier)
 
         # This name isn't usable in a declaration with an initial value. We defer
         # adding this variable to the scope until after it is declared.
         closure = (lambda: scope.declare(name, self.datatype, self.mutable))
-        scope.defer(closure)
+        context.parent.defer(closure)
 
         self.annotations["name"] = name
     

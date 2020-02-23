@@ -18,7 +18,6 @@ class Scope(Tree):
         self.parent = parent
         self.variables = []
         self.functions = []
-        self.deferred_stacks = []
         self.next_scope = self
     
     def declare(self, name, datatype, mutable):
@@ -62,22 +61,6 @@ class Scope(Tree):
         
         return random.choice(candidates)
     
-    def defer(self, closure):
-        """
-        Schedule some code to run when `pop_deferred` is called on this scope.
-        """
-        self.deferred_stacks[-1].append(closure)
-    
-    def push_deferred(self):
-        self.deferred_stacks.append([])
-    
-    def pop_deferred(self):
-        deferred = self.deferred_stacks.pop()
-
-        while deferred:
-            closure = deferred.pop()
-            closure()
-
     def __contains__(self, key):
         if key in self.variables:
             return True

@@ -4,7 +4,7 @@ from .branch import branch_statement
 from .expression import Expression
 from .formatting import EOL, Block
 from .statement import assignment
-from .semantics import Token, PCFG
+from .semantics import Token, PCFG, SemanticParseTree
 from .names import identifier
 
 import random
@@ -16,7 +16,7 @@ import random
 class Function(Token):
     required_annotations = set(["name", "arguments", "returntype"])
 
-    def annotate(self, scope: Scope):
+    def annotate(self, scope: Scope, context: SemanticParseTree):
         self.annotations["name"] = next(identifier)
 
         arguments = {}

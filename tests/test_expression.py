@@ -8,12 +8,12 @@ class TestExpression(unittest.TestCase):
         scope = Scope()
         scope.declare("foo", "Int", False)
         v = Variable("Int")
-        v.annotate(scope)
+        v.annotate(scope, None)
         self.assertEqual(v.string(), "foo")
     
     def test_variable_falls_back_to_literal(self):
         v = Variable("Int")
-        v.annotate(Scope())
+        v.annotate(Scope(), None)
         int(v.string()) # ValueError if it didn't fall back to an int literal
     
     def test_variable_annotated_by_tree(self):

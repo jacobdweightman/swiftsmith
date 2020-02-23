@@ -1,3 +1,5 @@
+from collections import deque
+
 from .grammar import ParseTree, PCFG, Nonterminal
 from .scope import Scope
 
@@ -14,7 +16,7 @@ class Annotatable(object):
     def is_annotated(self) -> bool:
         return self.__class__.required_annotations.issubset(self.annotations)
     
-    def annotate(self, scope: Scope):
+    def annotate(self, scope: Scope, context):
         raise NotImplementedError(f"'{self.__class__}' does not implement 'annotate(scope)'")
 
     def string(self):
@@ -48,6 +50,16 @@ class Token(Annotatable):
 
 
 class SemanticParseTree(ParseTree):
+    """
+    Represents a parse tree with additional semantic (context-dependent) information.
+    
+    Changes in traversal state may also be deferred until later using the `defer`
+    method. Deferred methods are run immediately after the tree has been annotated.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._deferred_actions = deque()
+    
     def annotate(self, scope=Scope()):
         """
         Add annotations with semantic information to nodes of this tree.
@@ -57,13 +69,13 @@ class SemanticParseTree(ParseTree):
         """
         # TODO: check only for strings once `Nonterminals` are `Annotatable`.
         if isinstance(self.value, Annotatable):
-            self.value.annotate(scope.next_scope)
+            self.value.annotate(scope.next_scope, self)
         
-        scope.push_deferred()
         if self.children is not None:
             for child in self.children:
                 child.annotate(scope=scope.next_scope)
-        scope.pop_deferred()
+        
+        self._run_deferred()
     
     def string(self):
         """Get the string of terminals represented by this parse tree."""
@@ -74,6 +86,23 @@ class SemanticParseTree(ParseTree):
         
         children = [child.string() for child in self.children]
         return "".join(children)
+    
+    def defer(self, closure):
+        """
+        Defers execution of the given closure until `run_deferred` is called.
+
+        Note: closure must be callable and take no arguments.
+        """
+        self._deferred_actions.append(closure)
+    
+    def _run_deferred(self):
+        """
+        Runs all deferred actions on this nonterminal in the order they were added.
+        """
+        while self._deferred_actions:
+            action = self._deferred_actions.popleft()
+            action()
+
 
 class SemanticPCFG(PCFG):
     """

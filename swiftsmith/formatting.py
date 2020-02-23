@@ -1,6 +1,6 @@
 from .grammar import Nonterminal
 from .scope import Scope
-from .semantics import Token
+from .semantics import Token, SemanticParseTree
 
 ########################################
 #   Tokens                             #
@@ -10,7 +10,7 @@ class Block(Token):
     def __init__(self, returntype=None):
         self.returntype = returntype
     
-    def annotate(self, scope: Scope):
+    def annotate(self, scope: Scope, context: SemanticParseTree):
         # "push" a new scope nested in the current one
         scope.children.append(Scope(parent=scope))
         scope.next_scope = scope.children[-1]
@@ -18,7 +18,7 @@ class Block(Token):
         def closure():
             # "pop" the scope once its content has been generated
             scope.next_scope = scope
-        scope.defer(closure)
+        context.parent.defer(closure)
     
     def string(self):
         return ""
@@ -30,7 +30,7 @@ class Block(Token):
 class EOL(Token):
     required_annotations = set(["depth"])
 
-    def annotate(self, scope: Scope):
+    def annotate(self, scope: Scope, context: SemanticParseTree):
         i = 0
         for _ in scope.ancestors():
             i += 1

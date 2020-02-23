@@ -9,26 +9,27 @@ class TestFormatting(unittest.TestCase):
         # depth = 0
         scope = Scope()
         eol = EOL()
-        eol.annotate(scope)
+        eol.annotate(scope, None)
         self.assertEqual(eol.string(), "\n")
 
         # depth = 1
         scope = Scope(parent=scope)
-        eol.annotate(scope)
+        eol.annotate(scope, None)
         self.assertEqual(eol.string(), "\n\t")
 
         # depth = 2
         scope = Scope(parent=scope)
-        eol.annotate(scope)
+        eol.annotate(scope, None)
         self.assertEqual(eol.string(), "\n\t\t")
     
     def test_block_creates_child_scope(self):
         scope = Scope()
         block = Block()
-        scope.push_deferred()
-        block.annotate(scope)
+        subtree = SemanticParseTree(block)
+        tree = SemanticParseTree("parent", [subtree])
+        block.annotate(scope, subtree)
         self.assertEqual(scope, scope.next_scope.parent)
-        scope.pop_deferred()
+        tree._run_deferred()
         self.assertEqual(scope, scope.next_scope)
 
     def test_blocks_indent_in_tree(self):

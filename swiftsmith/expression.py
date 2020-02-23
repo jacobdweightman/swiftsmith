@@ -1,5 +1,5 @@
 from .grammar import Nonterminal, PProduction
-from .semantics import Token, SemanticNonterminal, SemanticPCFG
+from .semantics import Token, SemanticNonterminal, SemanticParseTree, SemanticPCFG
 from .scope import Scope
 
 import random
@@ -12,7 +12,7 @@ class Int(Token):
     """Represents an integer literal token."""
     required_annotations = set(["value"])
 
-    def annotate(self, scope: Scope):
+    def annotate(self, scope: Scope, context: SemanticParseTree):
         self.annotations["value"] = random.randint(0, 5)
     
     def string(self):
@@ -27,7 +27,7 @@ class Bool(Token):
     """Represents a boolean literal token."""
     required_annotations = set(["value"])
 
-    def annotate(self, scope: Scope):
+    def annotate(self, scope: Scope, context: SemanticParseTree):
         self.annotations["value"] = random.choice(["true", "false"])
     
     def string(self):
@@ -46,7 +46,7 @@ class Variable(Token):
         self.datatype = datatype
         self.mutable = mutable
 
-    def annotate(self, scope: Scope):
+    def annotate(self, scope: Scope, context: SemanticParseTree):
         try:
             self.annotations["value"] = scope.choose_variable(datatype=self.datatype, mutable=self.mutable)
         except IndexError:
@@ -56,7 +56,7 @@ class Variable(Token):
                 substitute = Bool()
             else:
                 raise ValueError(f"Cannot construct literal of type `{self.datatype}`")
-            substitute.annotate(scope)
+            substitute.annotate(scope, context)
             self.annotations["value"] = substitute.string()
 
     def string(self):
@@ -82,7 +82,7 @@ class Expression(SemanticNonterminal):
         if datatype is not None:
             self.annotations["datatype"] = datatype
     
-    def annotate(self, scope: Scope):
+    def annotate(self, scope: Scope, context: SemanticParseTree):
         # TODO: infer expression types if/when it becomes useful.
         if "datatype" not in self.annotations:
             raise NotImplementedError()
