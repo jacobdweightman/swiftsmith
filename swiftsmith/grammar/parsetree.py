@@ -28,6 +28,10 @@ class Tree(object):
         while node:
             yield node
             node = node.parent
+    
+    def childwhere(self, matcher):
+        """returns the first child of this tree where matcher returns True"""
+        return next(filter(matcher, self.children))
 
     def isleaf(self):
         """True if this tree does not have children."""

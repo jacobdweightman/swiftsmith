@@ -4,7 +4,7 @@ from .branch import branch_statement
 from .expression import Expression
 from .formatting import EOL, Block
 from .statement import assignment
-from .semantics import Token, PCFG, SemanticParseTree
+from .semantics import Token, PCFG, SemanticParseTree, SemanticNonterminal
 from .names import identifier
 
 import random
@@ -20,7 +20,7 @@ class Function(Token):
         self.annotations["name"] = next(identifier)
 
         arguments = {}
-        for _ in range(random.randint(0, 3)):
+        for _ in range(random.randint(1, 3)):
             arguments[next(identifier)] = "Int"
         self.annotations["arguments"] = arguments
 
@@ -33,6 +33,11 @@ class Function(Token):
             self.annotations["returntype"]
         )
 
+        def closure():
+            for argument, datatype in arguments.items():
+                scope.children[-1].declare(argument, datatype, False)
+        context.parent.childwhere(lambda n: n.value == block).children[0].defer(closure)
+    
     def string(self):
         assert self.is_annotated()
         name = self.annotations["name"]
