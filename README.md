@@ -24,6 +24,37 @@ python3 -m swiftsmith YOUR_SEED_HERE >> randomprogram.swift
 
 ## How it works
 
-SwiftSmith generates programs in two phases. The first phase takes a random walk on the productions of a context free grammar that describes the syntax of Swift. This is part of the program is largely based on the [official summary of the grammar](https://docs.swift.org/swift-book/ReferenceManual/zzSummaryOfTheGrammar.html). Ultimately, this phase produces a parse tree, where the leaves are one of several token types but without a specific string value.
+SwiftSmith generates programs in three phases. The first phase takes a random walk on the productions of a context free grammar that describes the syntax of Swift. This is part of the program is largely based on the [official summary of the grammar](https://docs.swift.org/swift-book/ReferenceManual/zzSummaryOfTheGrammar.html). Ultimately, this phase produces an abstract syntax tree, where the leaves are strings or one of several token types.
 
-The second phase traverses this parse tree and assigns specific string values to each token according to the semantics of Swift. For instance, variables cannot be used before they are declared and initialized, and variables and functions can only be used within their scope.
+The second phase traverses this parse tree and annotate tokens in the syntax tree with context-depdendent information according to the semantics of Swift. For instance, variables cannot be used before they are declared and initialized, and variables and functions can only be used within their scope.
+
+The third phase produces the actual text of the program from the annotated parse tree.
+
+## Bits and Pieces
+
+Support for working with context-free grammars is provided by the `swiftsmith.grammar` submodule [here](https://github.com/jacobdweightman/swiftsmith/tree/master/swiftsmith/grammar). This exposes the following classes:
+
+* `CFG` which represents a context free grammar
+* `Nonterminal` which represents a nonterminal symbol in a grammar
+* `Production` which represents a rule for expanding/rewriting a nonterminal in a  grammar
+* `ParseTree` which represents a tree of symbols produced by a grammar
+
+As well as counterparts for probabalistic context-free grammars, which are context-free grammars where productions have an associated probability:
+
+* `PProduction` is a probabilitic production, which extends `Production` with a probability value
+* `PCFG` which extends `CFG` with a method to create random parse trees.
+
+SwiftSmith uses the grammar submodule extensively, but extends some of its functionality for handling the context-dependent parts of Swift. In particular, "semantic" counterparts of the types from `grammar` are defined in `semantics.py` [here](https://github.com/jacobdweightman/swiftsmith/blob/master/swiftsmith/semantics.py), including:
+
+* `SemanticParseTree` which supports working with nodes that require annotation with context-dependent information
+* The `Annotatable` interface for parse tree nodes that depend on context
+* The `SemanticNonterminal` and `Token` classes which implement `Annotatable` for internal and leaf parse tree nodes, respectively
+* `SemanticPCFG` which is a PCFG but which works with `SemanticParseTree`s instead of "ordinary" `ParseTree`s.
+
+## Hacking with SwiftSmith
+
+I've tried to design SwiftSmith to be relatively modular and extensible, and I encourage you to try extending or borrowing internals from SwiftSmith. Some ideas to get you started:
+* Experiment with new metamorphic relations
+* Use the `grammar` submodule or `semantics.py` to generate programs in a different programming language
+* Generate random test data for a non-compiler program—for instance, JSON is readily described by a CFG
+* Build a simple translator based on parse tree transformations
