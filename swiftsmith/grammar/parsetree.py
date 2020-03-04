@@ -22,6 +22,15 @@ class Tree(object):
                             "its children,  but more arguments were given.")
         self.value = value
     
+    def add_child(self, child):
+        """Adds a new rightmost child to this tree."""
+        if self.children is None:
+            self.children = []
+        if not isinstance(child, type(self)):
+            child = type(self)(child)
+        self.children.append(child)
+        child.parent = self
+    
     def ancestors(self):
         """Generate the ancestors of the current node."""
         node = self.parent

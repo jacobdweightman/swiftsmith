@@ -8,6 +8,10 @@ import random
 class Scope(Tree):
     """
     Represents the symbols that are available in a lexical scope within a Swift program.
+
+    A scope is tree whose value is a datatype if the scope represents a type, or None if
+    it doesn't. For example, the value of the lexical scope of a struct will be that
+    struct, but the value of the lexical scope of an if statement will be None. 
     """
     Variable = namedtuple("Variable", ["name", "datatype", "mutable"])
     Function = namedtuple("Function", ["name", "arguments", "returntype"])
