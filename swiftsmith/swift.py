@@ -1,4 +1,4 @@
-from .grammar import Nonterminal, PProduction, PCFG
+from .grammar import Nonterminal, PProduction
 from .branch import branch_grammar
 from .enum import enum_grammar, enum
 from .expression import expression_grammar

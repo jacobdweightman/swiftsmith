@@ -4,6 +4,7 @@ from .formatting import EOL
 from .scope import Scope
 from .semantics import Token, SemanticPCFG, SemanticParseTree
 from .names import identifier
+from .types import Int
 
 ########################################
 #   Tokens                             #
@@ -55,8 +56,8 @@ declaration = Nonterminal("DECLARATION")
 statement_grammar = SemanticPCFG(
     assignment,
     [
-        PProduction(assignment, (EOL(), Declaration("Int"), " = ", Expression("Int")), 0.3),
-        PProduction(assignment, (EOL(), Declaration("Int", mutable=True), " = ", Expression("Int")), 0.3),
-        #PProduction(assignment, (EOL(), Variable("Int"), " = ", expression("Int")), 0.7),
+        PProduction(assignment, (EOL(), Declaration(Int), " = ", Expression(Int)), 0.3),
+        PProduction(assignment, (EOL(), Declaration(Int, mutable=True), " = ", Expression(Int)), 0.3),
+        #PProduction(assignment, (EOL(), Variable(Int), " = ", expression(Int)), 0.7),
     ]
 )

@@ -2,11 +2,12 @@ import unittest
 from swiftsmith.statement import Declaration
 from swiftsmith.scope import Scope
 from swiftsmith.semantics import SemanticParseTree
+from swiftsmith.types import Int
 
 class TestStatement(unittest.TestCase):
     def test_declaration_adds_variable_to_scope_later(self):
         scope = Scope()
-        dec = Declaration("Int")
+        dec = Declaration(Int)
         subtree = SemanticParseTree(dec)
         tree = SemanticParseTree("parent", [subtree])
         dec.annotate(scope, subtree)

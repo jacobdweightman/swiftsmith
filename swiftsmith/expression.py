@@ -1,6 +1,7 @@
 from .grammar import Nonterminal, PProduction
 from .semantics import Token, SemanticNonterminal, SemanticParseTree, SemanticPCFG
 from .scope import Scope
+from .types import DataType, Int, Bool
 
 import random
 
@@ -8,7 +9,7 @@ import random
 #   Tokens                             #
 ########################################
 
-class Int(Token):
+class IntLiteral(Token):
     """Represents an integer literal token."""
     required_annotations = set(["value"])
 
@@ -23,7 +24,7 @@ class Int(Token):
         return "Int()"
 
 
-class Bool(Token):
+class BoolLiteral(Token):
     """Represents a boolean literal token."""
     required_annotations = set(["value"])
 
@@ -50,10 +51,10 @@ class Variable(Token):
         try:
             self.annotations["value"] = scope.choose_variable(datatype=self.datatype, mutable=self.mutable)
         except IndexError:
-            if self.datatype == "Int":
-                substitute = Int()
-            elif self.datatype == "Bool":
-                substitute = Bool()
+            if self.datatype == Int:
+                substitute = IntLiteral()
+            elif self.datatype == Bool:
+                substitute = BoolLiteral()
             else:
                 raise ValueError(f"Cannot construct literal of type `{self.datatype}`")
             substitute.annotate(scope, context)
@@ -74,7 +75,7 @@ class Expression(SemanticNonterminal):
     """Represents an expression of a particular type."""
     required_annotations = set(["datatype"])
     
-    def __init__(self, datatype):
+    def __init__(self, datatype: DataType):
         super().__init__()
         self.datatype = datatype
 
@@ -98,22 +99,25 @@ class Expression(SemanticNonterminal):
     def __str__(self):
         return f"Expression<{self.datatype}>"
 
+    def __repr__(self):
+        return f"Expression<{self.datatype}>"
+
 ########################################
 #   Grammar                            #
 ########################################
 
 expression_grammar = SemanticPCFG(
-    Expression("Int"),
+    Expression(Int),
     [
-        PProduction(Expression("Int"), (Int(), " + ", Expression("Int")), 0.1),
-        PProduction(Expression("Int"), (Variable("Int"), " + ", Expression("Int")), 0.1),
-        PProduction(Expression("Int"), (Int(), " * ", Expression("Int")), 0.1),
-        PProduction(Expression("Int"), (Variable("Int"), " * ", Expression("Int")), 0.1),
-        PProduction(Expression("Int"), (Int(),), 0.3),
-        PProduction(Expression("Int"), (Variable("Int"),), 0.3),
+        PProduction(Expression(Int), (IntLiteral(), " + ", Expression(Int)), 0.1),
+        PProduction(Expression(Int), (Variable(Int), " + ", Expression(Int)), 0.1),
+        PProduction(Expression(Int), (IntLiteral(), " * ", Expression(Int)), 0.1),
+        PProduction(Expression(Int), (Variable(Int), " * ", Expression(Int)), 0.1),
+        PProduction(Expression(Int), (IntLiteral(),), 0.3),
+        PProduction(Expression(Int), (Variable(Int),), 0.3),
 
-        PProduction(Expression("Bool"), (Expression("Int"), " > ", Expression("Int")), 0.2),
-        PProduction(Expression("Bool"), (Expression("Int"), " == ", Expression("Int")), 0.2),
-        PProduction(Expression("Bool"), (Bool(),), 0.4),
+        PProduction(Expression(Bool), (Expression(Int), " > ", Expression(Int)), 0.2),
+        PProduction(Expression(Bool), (Expression(Int), " == ", Expression(Int)), 0.2),
+        PProduction(Expression(Bool), (BoolLiteral(),), 0.4),
     ]
 )

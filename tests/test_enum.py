@@ -1,5 +1,5 @@
 import unittest
-from swiftsmith.enum import Case, Enum
+from swiftsmith.enum import Case, Enum, statements
 from swiftsmith.formatting import Block
 from swiftsmith.semantics import Scope, SemanticParseTree
 from swiftsmith.types import EnumType, Int
@@ -26,8 +26,10 @@ class EnumTests(unittest.TestCase):
         outer_scope = Scope()
         tree = SemanticParseTree("enum", [
             Enum(),
-            Case(),
-            Case(),
+            SemanticParseTree(statements, [
+                Case(),
+                Case(),
+            ])
         ])
         
         tree.annotate(scope=outer_scope)

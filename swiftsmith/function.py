@@ -6,6 +6,7 @@ from .formatting import EOL, Block
 from .statement import assignment
 from .semantics import Token, PCFG, SemanticParseTree, SemanticNonterminal
 from .names import identifier
+from .types import Int
 
 import random
 
@@ -21,11 +22,11 @@ class Function(Token):
 
         arguments = {}
         for _ in range(random.randint(1, 3)):
-            arguments[next(identifier)] = "Int"
+            arguments[next(identifier)] = Int
         self.annotations["arguments"] = arguments
 
         # TODO: allow non-Int return types
-        self.annotations["returntype"] = "Int"
+        self.annotations["returntype"] = Int
 
         scope.declare_func(
             self.annotations["name"],
@@ -44,9 +45,9 @@ class Function(Token):
         arguments = self.annotations["arguments"]
         returntype = self.annotations["returntype"]
 
-        argstring = ', '.join(k + ": " + v for (k,v) in arguments.items())
+        argstring = ', '.join(k + ": " + v.name for (k,v) in arguments.items())
         
-        return f"{name}({argstring}) -> {returntype}"
+        return f"{name}({argstring}) -> {returntype.name}"
 
 ########################################
 #   Nonterminals                       #
@@ -68,7 +69,7 @@ function_grammar = PCFG(
         PProduction(block, (Block(), statements), 1.0),
 
         PProduction(statements, (statement, statements), 0.7),
-        PProduction(statements, (EOL(), "return ", Expression("Int")), 0.3),
+        PProduction(statements, (EOL(), "return ", Expression(Int)), 0.3),
         PProduction(statement, (assignment,), 0.7),
         PProduction(statement, (branch_statement,), 0.3)
     ]
