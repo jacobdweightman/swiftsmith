@@ -1,5 +1,6 @@
 from swiftsmith.grammar.parsetree import Tree, ParseTree
 from swiftsmith.grammar.pcfg import PCFG
+from swiftsmith.types import DataType
 
 from collections import namedtuple
 import random
@@ -16,8 +17,8 @@ class Scope(Tree):
     Variable = namedtuple("Variable", ["name", "datatype", "mutable"])
     Function = namedtuple("Function", ["name", "arguments", "returntype"])
 
-    def __init__(self, parent=None):
-        super().__init__(None, {})
+    def __init__(self, parent=None, datatype=None):
+        super().__init__(datatype, {})
 
         self.parent = parent
         self.variables = []
@@ -62,6 +63,27 @@ class Scope(Tree):
             candidates = filter(lambda n: n.name == name, candidates)
         if returntype:
             candidates = filter(lambda n: n.returntype == returntype, candidates)
+        
+        return random.choice(candidates)
+    
+    def choose_type(self):
+        """Returns a random Swift type that is available in this lexical scope."""
+        candidates = []
+        # all nested types are accessible
+        for nestedtype in self.preorder():
+            # Note: nestedtype is either a DataType object or None.
+            if isinstance(nestedtype, DataType):
+                candidates.append(nestedtype)
+        
+        # all enclosing types are accessible
+        for enclosingscope in self.ancestors():
+            # including ancestors and their siblings
+            for siblingscope in enclosingscope.children:
+                if isinstance(siblingscope.value, DataType):
+                    candidates.append(siblingscope.value)
+            
+            if isinstance(enclosingscope.value, DataType):
+                candidates.append(enclosingscope.value)
         
         return random.choice(candidates)
     

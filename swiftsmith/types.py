@@ -1,9 +1,18 @@
 from collections import namedtuple
 import random
+from enum import IntEnum
+
+class AccessLevel(IntEnum):
+    private = 0
+    fileprivate = 1 # This is equivalent to internal in a single-file module.
+    internal = 1
+    public = 2
+    open = 2
 
 class DataType(object):
     """The parent class of all Swift datatypes."""
-    def __init__(self, name):
+    def __init__(self, name: str, access: AccessLevel=AccessLevel.internal):
+        self.access = access
         self.name = name
 
     def __str__(self):
@@ -23,9 +32,9 @@ class EnumType(DataType):
     """
     Case = namedtuple("EnumCase", ["name", "raw_value"])
 
-    def __init__(self, name, raw_type=type(None)):
+    def __init__(self, name, access: AccessLevel=AccessLevel.internal, raw_type=type(None)):
         assert raw_type in {type(None), Int}
-        super().__init__(name)
+        super().__init__(name, access=access)
         self.raw_type = raw_type
         self.cases = {}
     
