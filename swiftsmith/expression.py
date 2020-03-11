@@ -67,13 +67,10 @@ class Variable(Token):
     def __str__(self):
         return f"Variable(datatype={self.datatype}, mutable={self.mutable})"
 
-########################################
-#   Nonterminals                       #
-########################################
 
-class Expression(SemanticNonterminal):
+class Expression(Token):
     """Represents an expression of a particular type."""
-    required_annotations = set(["datatype"])
+    required_annotations = set(["datatype", "subtree"])
     
     def __init__(self, datatype: DataType):
         super().__init__()
@@ -84,9 +81,19 @@ class Expression(SemanticNonterminal):
             self.annotations["datatype"] = datatype
     
     def annotate(self, scope: Scope, context: SemanticParseTree):
-        # TODO: infer expression types if/when it becomes useful.
         if "datatype" not in self.annotations:
-            raise NotImplementedError()
+            # Currently, type inference on expressions is only used with assignments.
+            # Reading the type off of the parent node is adequate for now.
+            self.datatype = context.parent.value.datatype
+            self.annotations["datatype"] = self.datatype
+        
+        subtree = _expression_grammar.randomtree(start=expression(self.datatype))
+        subtree.annotate(scope=scope)
+        self.annotations["subtree"] = subtree
+    
+    def string(self):
+        assert self.is_annotated()
+        return self.annotations["subtree"].string()
 
     def __eq__(self, other):
         # Two expression symbols must be of the same datatype to be equal.
@@ -103,21 +110,28 @@ class Expression(SemanticNonterminal):
         return f"Expression<{self.datatype}>"
 
 ########################################
+#   Nonterminals                       #
+########################################
+
+def expression(datatype) -> Nonterminal:
+    return Nonterminal(f"expression<{datatype}>")
+
+########################################
 #   Grammar                            #
 ########################################
 
-expression_grammar = SemanticPCFG(
-    Expression(Int),
+_expression_grammar = SemanticPCFG(
+    expression(Int),
     [
-        PProduction(Expression(Int), (IntLiteral(), " + ", Expression(Int)), 0.1),
-        PProduction(Expression(Int), (Variable(Int), " + ", Expression(Int)), 0.1),
-        PProduction(Expression(Int), (IntLiteral(), " * ", Expression(Int)), 0.1),
-        PProduction(Expression(Int), (Variable(Int), " * ", Expression(Int)), 0.1),
-        PProduction(Expression(Int), (IntLiteral(),), 0.3),
-        PProduction(Expression(Int), (Variable(Int),), 0.3),
+        PProduction(expression(Int), (IntLiteral(), " + ", expression(Int)), 0.1),
+        PProduction(expression(Int), (Variable(Int), " + ", expression(Int)), 0.1),
+        PProduction(expression(Int), (IntLiteral(), " * ", expression(Int)), 0.1),
+        PProduction(expression(Int), (Variable(Int), " * ", expression(Int)), 0.1),
+        PProduction(expression(Int), (IntLiteral(),), 0.3),
+        PProduction(expression(Int), (Variable(Int),), 0.3),
 
-        PProduction(Expression(Bool), (Expression(Int), " > ", Expression(Int)), 0.2),
-        PProduction(Expression(Bool), (Expression(Int), " == ", Expression(Int)), 0.2),
-        PProduction(Expression(Bool), (BoolLiteral(),), 0.4),
+        PProduction(expression(Bool), (expression(Int), " > ", expression(Int)), 0.2),
+        PProduction(expression(Bool), (expression(Int), " == ", expression(Int)), 0.2),
+        PProduction(expression(Bool), (BoolLiteral(),), 0.4),
     ]
 )

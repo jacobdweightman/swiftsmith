@@ -1,7 +1,6 @@
 from .grammar import Nonterminal, PProduction
 from .branch import branch_grammar
 from .enum import enum_grammar, enum
-from .expression import expression_grammar
 from .function import function_grammar, funcdeclaration
 from .statement import statement_grammar, assignment
 from .formatting import EOL
@@ -19,7 +18,6 @@ swift = SemanticPCFG(
         PProduction(S, (funcdeclaration,), 0.4), # Guarantee at least one function
     ]
 ) + branch_grammar \
-  + expression_grammar \
   + function_grammar \
   + statement_grammar \
   + enum_grammar
