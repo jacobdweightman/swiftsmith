@@ -1,7 +1,7 @@
 from .grammar import Nonterminal, PProduction
 from .semantics import Token, SemanticNonterminal, SemanticParseTree, SemanticPCFG
 from .scope import Scope
-from .types import DataType, Int, Bool
+from .types import DataType, Int, Bool, EnumType
 
 import random
 
@@ -87,8 +87,11 @@ class Expression(Token):
             self.datatype = context.parent.value.datatype
             self.annotations["datatype"] = self.datatype
         
-        subtree = _expression_grammar.randomtree(start=expression(self.datatype))
-        subtree.annotate(scope=scope)
+        if isinstance(self.datatype, EnumType):
+            subtree = SemanticParseTree(self.datatype.choose_case_value())
+        else:
+            subtree = _expression_grammar.randomtree(start=expression(self.datatype))
+            subtree.annotate(scope=scope)
         self.annotations["subtree"] = subtree
     
     def string(self):

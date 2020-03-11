@@ -1,6 +1,6 @@
 from swiftsmith.grammar.parsetree import Tree, ParseTree
 from swiftsmith.grammar.pcfg import PCFG
-from swiftsmith.types import DataType
+from swiftsmith.types import DataType, Int, Bool
 
 from collections import namedtuple
 import random
@@ -68,7 +68,7 @@ class Scope(Tree):
     
     def choose_type(self):
         """Returns a random Swift type that is available in this lexical scope."""
-        candidates = []
+        candidates = [Int, Bool]
         # all nested types are accessible
         for nestedtype in self.preorder():
             # Note: nestedtype is either a DataType object or None.

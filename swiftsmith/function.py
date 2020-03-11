@@ -3,7 +3,7 @@ from .scope import Scope
 from .branch import branch_statement
 from .expression import Expression
 from .formatting import EOL, Block
-from .statement import assignment
+from .statement import Assignment
 from .semantics import Token, PCFG, SemanticParseTree, SemanticNonterminal
 from .names import identifier
 from .types import Int
@@ -70,7 +70,7 @@ function_grammar = PCFG(
 
         PProduction(statements, (statement, statements), 0.7),
         PProduction(statements, (EOL(), "return ", Expression(Int)), 0.3),
-        PProduction(statement, (assignment,), 0.7),
+        PProduction(statement, (Assignment(None),), 0.7),
         PProduction(statement, (branch_statement,), 0.3)
     ]
 )

@@ -1,7 +1,7 @@
 from .expression import Expression
 from .formatting import Block, EOL
 from .grammar import Nonterminal, PProduction
-from .statement import assignment
+from .statement import Assignment
 from .semantics import Token, SemanticPCFG
 from .types import Bool
 
@@ -41,7 +41,7 @@ branch_grammar = SemanticPCFG(
         PProduction(statements, (statement, statements), 0.6),
         PProduction(statements, (statement,), 0.4), # guarantee at least one statement
 
-        PProduction(statement, (assignment,), 0.8),
+        PProduction(statement, (Assignment(None),), 0.8),
         PProduction(statement, (branch_statement,), 0.2), # be warry of recursion
     ]
 )
