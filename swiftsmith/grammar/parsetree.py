@@ -60,6 +60,15 @@ class Tree(object):
                 yield from child.postorder()
         yield self.value
     
+    def __contains__(self, value):
+        """
+        A tree contains a value iff it is equal to it or one of its descendents' values.
+        """
+        for item in self:
+            if value == item:
+                return True
+        return False
+
     def __iter__(self):
         yield from self.preorder()
 

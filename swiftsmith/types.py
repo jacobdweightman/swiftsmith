@@ -1,22 +1,50 @@
 from collections import namedtuple
 import random
-from enum import IntEnum
+from enum import Enum, IntEnum, auto
 
 class AccessLevel(IntEnum):
+    """Represents the possible access control levels."""
     private = 0
     fileprivate = 1 # This is equivalent to internal in a single-file module.
     internal = 1
     public = 2
     open = 2
 
+    def __str__(self):
+        if self == AccessLevel.private:
+            return "private"
+        elif self == AccessLevel.fileprivate:
+            return "fileprivate"
+        elif self == AccessLevel.internal:
+            return ""
+        elif self == AccessLevel.public:
+            return "public"
+        elif self == AccessLevel.open:
+            return "open"
+        raise NotImplementedError()
+
+
+class CallSyntax(Enum):
+    """Represents the possible function call syntaxes."""
+    normal = auto()
+    prefix = auto()
+    infix = auto()
+    postfix = auto()
+
+
 class DataType(object):
     """The parent class of all Swift datatypes."""
-    def __init__(self, name: str, access: AccessLevel=AccessLevel.internal):
+    def __init__(
+        self,
+        name: str,
+        access: AccessLevel=AccessLevel.internal,
+        instance_methods = {},
+        static_methods = {},
+    ):
         self.access = access
         self.name = name
-
-    def __str__(self):
-        return self.name
+        self.instance_methods = instance_methods
+        self.static_methods = static_methods
     
     def __eq__(self, other):
         return type(self) == type(other) and self.name == other.name
@@ -32,10 +60,8 @@ class EnumType(DataType):
     """
     Case = namedtuple("EnumCase", ["name", "raw_value"])
 
-    def __init__(self, name, access: AccessLevel=AccessLevel.internal, raw_type=type(None)):
-        assert raw_type in {type(None), Int}
+    def __init__(self, name, access: AccessLevel=AccessLevel.internal):
         super().__init__(name, access=access)
-        self.raw_type = raw_type
         self.cases = {}
     
     def add_case(self, name, raw_value=None):
@@ -59,6 +85,16 @@ class EnumType(DataType):
                 # TODO: handle enums nested inside of other types
                 return f"{self.name}.{case.name}"
 
+    def __str__(self):
+        accessstr = str(self.access)
+        if accessstr != "":
+            accessstr += " "
+        
+        return f"{accessstr}enum {self.name}"
+    
+    def __repr__(self):
+        return str(self)
+
 
 class Struct(DataType):
     """
@@ -67,11 +103,12 @@ class Struct(DataType):
     For more information on the differences between structs and classes in Swift, see
     https://docs.swift.org/swift-book/LanguageGuide/ClassesAndStructures.html
     """
-    pass
-
-########################################
-#   Standard Library Types             #
-########################################
-
-Int = Struct("Int")
-Bool = Struct("Bool")
+    def __str__(self):
+        accessstr = str(self.access)
+        if accessstr != "":
+            accessstr += " "
+        
+        return f"{accessstr}struct {self.name}"
+    
+    def __repr__(self):
+        return str(self)

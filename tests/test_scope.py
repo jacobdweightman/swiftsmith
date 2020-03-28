@@ -1,6 +1,7 @@
 import unittest
 from swiftsmith import Scope
-from swiftsmith.types import EnumType, Int
+from swiftsmith.types import EnumType
+from swiftsmith.standard_library import Bool, Int
 
 class ScopeTests(unittest.TestCase):
     def test_declared_variables_may_be_chosen(self):
@@ -45,4 +46,9 @@ class ScopeTests(unittest.TestCase):
         child = Scope()
         parent.add_child(child)
         self.assertEqual(child.choose_type(), A)
-
+    
+    def test_importing_standard_library_exposes_expected_types(self):
+        scope = Scope()
+        scope.import_standard_library()
+        self.assertIn(Bool, scope)
+        self.assertIn(Int, scope)

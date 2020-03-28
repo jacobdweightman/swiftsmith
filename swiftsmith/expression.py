@@ -1,7 +1,8 @@
 from .grammar import Nonterminal, PProduction
 from .semantics import Token, SemanticNonterminal, SemanticParseTree, SemanticPCFG
 from .scope import Scope
-from .types import DataType, Int, Bool, EnumType
+from .types import DataType, EnumType
+from .standard_library import Bool, Int
 
 import random
 
@@ -135,6 +136,7 @@ _expression_grammar = SemanticPCFG(
 
         PProduction(expression(Bool), (expression(Int), " > ", expression(Int)), 0.2),
         PProduction(expression(Bool), (expression(Int), " == ", expression(Int)), 0.2),
-        PProduction(expression(Bool), (BoolLiteral(),), 0.4),
+        PProduction(expression(Bool), (BoolLiteral(),), 0.2),
+        PProduction(expression(Bool), (Variable(Bool),), 0.2),
     ]
 )

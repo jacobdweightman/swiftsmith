@@ -4,7 +4,8 @@ from .formatting import EOL
 from .scope import Scope
 from .semantics import Token, SemanticPCFG, SemanticParseTree, SemanticNonterminal
 from .names import identifier
-from .types import DataType, Int
+from .types import DataType
+from .standard_library import Int
 
 ########################################
 #   Tokens                             #

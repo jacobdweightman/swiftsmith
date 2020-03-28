@@ -3,7 +3,7 @@ from .formatting import Block, EOL
 from .grammar import Nonterminal, PProduction
 from .statement import Assignment
 from .semantics import Token, SemanticPCFG
-from .types import Bool
+from .standard_library import Bool
 
 ########################################
 #   Nonterminals                       #

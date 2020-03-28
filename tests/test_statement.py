@@ -3,7 +3,7 @@ import unittest
 from swiftsmith.statement import Assignment, Declaration
 from swiftsmith.scope import Scope
 from swiftsmith.semantics import SemanticParseTree
-from swiftsmith.types import Int
+from swiftsmith.standard_library import Int
 from swiftsmith.swift import swift
 
 class TestStatement(unittest.TestCase):

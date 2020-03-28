@@ -6,7 +6,7 @@ from .formatting import EOL, Block
 from .statement import Assignment
 from .semantics import Token, PCFG, SemanticParseTree, SemanticNonterminal
 from .names import identifier
-from .types import Int
+from .standard_library import Int
 
 import random
 

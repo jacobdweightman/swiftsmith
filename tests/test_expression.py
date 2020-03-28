@@ -3,7 +3,7 @@ import unittest
 from swiftsmith.expression import Variable, IntLiteral, BoolLiteral, Expression, expression
 from swiftsmith.scope import Scope
 from swiftsmith.semantics import SemanticParseTree
-from swiftsmith.types import Bool, Int
+from swiftsmith.standard_library import Bool, Int
 
 class TestExpression(unittest.TestCase):
     def test_variable_resolves_in_scope(self):
