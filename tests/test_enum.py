@@ -16,7 +16,7 @@ class EnumTests(unittest.TestCase):
     def test_get_enum_expression(self):
         A = EnumType("A")
         A.add_case("a")
-        self.assertEqual(A.choose_case_value(), "A.a")
+        self.assertEqual(A.newvalue(), "A.a")
     
     def test_enum_in_scope(self):
         outer_scope = Scope()

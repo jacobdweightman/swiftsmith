@@ -1,8 +1,7 @@
 from .grammar import Nonterminal, PProduction
-from .semantics import Token, SemanticNonterminal, SemanticParseTree, SemanticPCFG
+from .semantics import Token, SemanticNonterminal, SemanticParseTree
 from .scope import Scope
-from .types import DataType, EnumType
-from .standard_library import Bool, Int
+from .types import CallSyntax, DataType, EnumType
 
 import random
 
@@ -10,34 +9,28 @@ import random
 #   Tokens                             #
 ########################################
 
-class IntLiteral(Token):
-    """Represents an integer literal token."""
-    required_annotations = set(["value"])
+class Value(Token):
+    """
+    Represents a value of a type.
+    
+    This may be a literal, an enum case, or a constructor call, depending on the type
+    that it represents.
+    """
+    required_annotations = {"value"}
 
+    def __init__(self, datatype: DataType):
+        assert datatype is not None
+        super().__init__()
+        self.datatype = datatype
+    
     def annotate(self, scope: Scope, context: SemanticParseTree):
-        self.annotations["value"] = random.randint(0, 5)
+        self.annotations["value"] = self.datatype.newvalue()
     
     def string(self):
-        assert self.is_annotated()
-        return str(self.annotations["value"])
-
-    def __str__(self):
-        return "Int()"
-
-
-class BoolLiteral(Token):
-    """Represents a boolean literal token."""
-    required_annotations = set(["value"])
-
-    def annotate(self, scope: Scope, context: SemanticParseTree):
-        self.annotations["value"] = random.choice(["true", "false"])
-    
-    def string(self):
-        assert self.is_annotated()
         return self.annotations["value"]
-
+    
     def __str__(self):
-        return "Bool()"
+        return f"Value<{self.datatype}>"
 
 
 class Variable(Token):
@@ -52,14 +45,7 @@ class Variable(Token):
         try:
             self.annotations["value"] = scope.choose_variable(datatype=self.datatype, mutable=self.mutable)
         except IndexError:
-            if self.datatype == Int:
-                substitute = IntLiteral()
-            elif self.datatype == Bool:
-                substitute = BoolLiteral()
-            else:
-                raise ValueError(f"Cannot construct literal of type `{self.datatype}`")
-            substitute.annotate(scope, context)
-            self.annotations["value"] = substitute.string()
+            self.annotations["value"] = self.datatype.newvalue()
 
     def string(self):
         assert self.is_annotated()
@@ -88,12 +74,24 @@ class Expression(Token):
             self.datatype = context.parent.value.datatype
             self.annotations["datatype"] = self.datatype
         
-        if isinstance(self.datatype, EnumType):
-            subtree = SemanticParseTree(self.datatype.choose_case_value())
+        if random.random() < 0.5:
+            if random.random() < 0.7:
+                tree = SemanticParseTree(Variable(self.datatype))
+            else:
+                tree = SemanticParseTree(Value(self.datatype))
         else:
-            subtree = _expression_grammar.randomtree(start=expression(self.datatype))
-            subtree.annotate(scope=scope)
-        self.annotations["subtree"] = subtree
+            # generate function call
+            # Note: we currently only allow an expression to contain a single function
+            # call. this produces simpler expressions and guarantees that expression
+            # generation halts.
+            try:
+                fname, ftype = scope.choose_function(returntype=self.datatype)
+                tree = SemanticParseTree(FunctionCall(fname, ftype), [])
+            except IndexError:
+                tree = SemanticParseTree(Variable(self.datatype))
+        
+        tree.annotate(scope=scope)
+        self.annotations["subtree"] = tree
     
     def string(self):
         assert self.is_annotated()
@@ -117,26 +115,47 @@ class Expression(Token):
 #   Nonterminals                       #
 ########################################
 
-def expression(datatype) -> Nonterminal:
-    return Nonterminal(f"expression<{datatype}>")
+class FunctionCall(SemanticNonterminal):
+    """
+    Represents a function call.
 
-########################################
-#   Grammar                            #
-########################################
+    This is a hack due to the variety of function call syntaxes in Swift. As a result,
+    the "parse tree" it works with is slightly abstracted from the actual text that it
+    generates, so strictly speaking it's an AST and not a parse tree. In order to
+    generate the correct syntax, `annotate` modifies the tree by creating its own 
+    children which is typically not recommended. Usage of this class:
+    ```
+    tree = SemanticParseTree(FunctionCall(Int), []) # explicitly pass empty children
+    tree.annotate()
+    print(tree.string())
+    ```
+    """
+    def __init__(self, name, functiontype):
+        super().__init__()
+        self.name = name
+        self.functiontype = functiontype
 
-_expression_grammar = SemanticPCFG(
-    expression(Int),
-    [
-        PProduction(expression(Int), (IntLiteral(), " + ", expression(Int)), 0.1),
-        PProduction(expression(Int), (Variable(Int), " + ", expression(Int)), 0.1),
-        PProduction(expression(Int), (IntLiteral(), " * ", expression(Int)), 0.1),
-        PProduction(expression(Int), (Variable(Int), " * ", expression(Int)), 0.1),
-        PProduction(expression(Int), (IntLiteral(),), 0.3),
-        PProduction(expression(Int), (Variable(Int),), 0.3),
+    def annotate(self, scope: Scope, context: SemanticParseTree):
+        name = self.name
+        ftype = self.functiontype
 
-        PProduction(expression(Bool), (expression(Int), " > ", expression(Int)), 0.2),
-        PProduction(expression(Bool), (expression(Int), " == ", expression(Int)), 0.2),
-        PProduction(expression(Bool), (BoolLiteral(),), 0.2),
-        PProduction(expression(Bool), (Variable(Bool),), 0.2),
-    ]
-)
+        if ftype.syntax == CallSyntax.normal:
+            children = [name, "("]
+            for argname, argtype in ftype.arguments.items():
+                children.append(f"{argname}: ")
+                children.append(Variable(argtype))
+                children.append(", ")
+            children[-1] = ")"
+        elif ftype.syntax == CallSyntax.prefix:
+            argtype = list(ftype.arguments.values())[0]
+            children = [name, Variable(argtype)]
+        elif ftype.syntax == CallSyntax.infix:
+            argtype1, argtype2 = list(ftype.arguments.values())
+            children = [Variable(argtype1), " ", name, " ", Variable(argtype2)]
+        elif ftype.syntax == CallSyntax.postfix:
+            argtype = list(ftype.arguments.values())[0]
+            children = [Variable(argtype), name]
+        else:
+            raise NotImplementedError(ftype.syntax)
+
+        context.children = list(map(SemanticParseTree, children))

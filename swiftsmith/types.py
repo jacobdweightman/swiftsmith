@@ -40,11 +40,19 @@ class DataType(object):
         access: AccessLevel=AccessLevel.internal,
         instance_methods = {},
         static_methods = {},
+        newvaluefactory=None,
     ):
         self.access = access
         self.name = name
         self.instance_methods = instance_methods
         self.static_methods = static_methods
+        self._newvaluefactory = newvaluefactory
+    
+    def newvalue(self):
+        """Returns an expression for a new value of this type."""
+        if self._newvaluefactory is not None:
+            return self._newvaluefactory()
+        raise NotImplementedError()
     
     def __eq__(self, other):
         return type(self) == type(other) and self.name == other.name
@@ -72,7 +80,7 @@ class EnumType(DataType):
         """
         self.cases[name] = EnumType.Case(name, raw_value)
     
-    def choose_case_value(self):
+    def newvalue(self):
         """Returns one of the cases of this enum as a string."""
         case = random.choice(list(self.cases.values()))
         # TODO: handle enums nested inside of other types
@@ -91,6 +99,29 @@ class EnumType(DataType):
             accessstr += " "
         
         return f"{accessstr}enum {self.name}"
+    
+    def __repr__(self):
+        return str(self)
+
+
+class FunctionType(DataType):
+    def __init__(self, arguments: dict, returntype: DataType, syntax: CallSyntax=CallSyntax.normal):
+        argstring = ", ".join([f"{n}: {t}" for n,t in arguments.items()])
+        super().__init__(name=f"({argstring}) -> {returntype}")
+        self.arguments = arguments
+        self.returntype = returntype
+
+        if syntax == CallSyntax.prefix:
+            assert len(arguments) == 1, f"expected 1 argument for prefix operator, got {len(arguments)}"
+        if syntax == CallSyntax.infix:
+            assert len(arguments) == 2, f"expected 2 arguments for infix operator, got {len(arguments)}"
+        if syntax == CallSyntax.postfix:
+            assert len(arguments) == 1, f"expected 1 argument for postfix operator, got {len(arguments)}"
+
+        self.syntax = syntax
+    
+    def __str__(self):
+        return self.name
     
     def __repr__(self):
         return str(self)

@@ -1,42 +1,47 @@
 import unittest
 from swiftsmith import Scope
-from swiftsmith.types import EnumType
+from swiftsmith.types import EnumType, FunctionType
 from swiftsmith.standard_library import Bool, Int
 
 class ScopeTests(unittest.TestCase):
-    def test_declared_variables_may_be_chosen(self):
+    def test_declared_variable_is_accessible(self):
         scope = Scope()
         scope.declare("foo", Int, False)
-        self.assertEqual(scope.choose_variable(), "foo")
+        self.assertSetEqual(scope.accessible_variables(), {("foo", Int, False)})
     
-    def test_declared_functions_may_be_chosen(self):
+    def test_declared_function_is_accessible(self):
         scope = Scope()
         scope.declare_func("foo", {"x": Int}, Int)
-        self.assertEqual(scope.choose_function(), ("foo", {"x": Int}, Int))
+        self.assertDictEqual(
+            scope.accessible_functions(),
+            {
+                "foo": FunctionType({"x": Int}, Int),
+            }
+        )
     
-    def test_may_choose_nested_type(self):
+    def test_nested_type_is_accessible(self):
         A = EnumType("A")
         scope = Scope()
         scope.add_child(Scope(datatype=A))
-        self.assertEqual(scope.choose_type(), A)
+        self.assertSetEqual(scope.accessible_types(), {A})
     
-    def test_may_choose_deeply_nested_type(self):
+    def test_deeply_nested_type_is_accessible(self):
         A = EnumType("A")
         scope = Scope()
         scope.add_child(Scope())
         scope.children[0].add_child(Scope())
         scope.children[0].children[0].add_child(Scope())
         scope.children[0].children[0].children[0].add_child(Scope(datatype=A))
-        self.assertEqual(scope.choose_type(), A)
+        self.assertSetEqual(scope.accessible_types(), {A})
     
-    def test_may_choose_enclosing_type(self):
+    def test_enclosing_type_is_accessible(self):
         A = EnumType("A")
         parent = Scope(datatype=A)
         child = Scope()
         parent.add_child(child)
-        self.assertEqual(child.choose_type(), A)
+        self.assertSetEqual(child.accessible_types(), {A})
     
-    def test_may_choose_enclosing_sibling_type(self):
+    def test_enclosing_sibling_type_is_accessible(self):
         A = EnumType("A")
         grandparent = Scope()
         parent = Scope()
@@ -45,10 +50,14 @@ class ScopeTests(unittest.TestCase):
         grandparent.add_child(uncle)
         child = Scope()
         parent.add_child(child)
-        self.assertEqual(child.choose_type(), A)
+        self.assertSetEqual(child.accessible_types(), {A})
     
-    def test_importing_standard_library_exposes_expected_types(self):
+    def test_importing_standard_library_exposes_expected_values(self):
         scope = Scope()
         scope.import_standard_library()
-        self.assertIn(Bool, scope)
-        self.assertIn(Int, scope)
+        self.assertSetEqual(scope.accessible_types(), {Bool, Int})
+        self.assertSetEqual(
+            set(scope.accessible_functions().keys()),
+            {"+", "*", ">", "=="},
+        )
+        self.assertSetEqual(scope.accessible_variables(), set())

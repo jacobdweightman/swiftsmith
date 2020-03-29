@@ -1,6 +1,6 @@
 import copy
 import unittest
-from swiftsmith.expression import Variable, IntLiteral, BoolLiteral, Expression, expression
+from swiftsmith.expression import Expression, Value, Variable
 from swiftsmith.scope import Scope
 from swiftsmith.semantics import SemanticParseTree
 from swiftsmith.standard_library import Bool, Int
@@ -26,7 +26,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(tree.string(), "foo")
     
     def test_bool_annotated_by_tree(self):
-        tree = SemanticParseTree(BoolLiteral())
+        tree = SemanticParseTree(Value(Bool))
         tree.annotate()
         self.assertIn(tree.string(), ["true", "false"])
     
@@ -34,15 +34,3 @@ class TestExpression(unittest.TestCase):
         intexp = Expression(Int)
         intexp2 = copy.deepcopy(intexp)
         self.assertEqual(intexp, intexp2)
-    
-    def test_deep_copy_expressions_are_equal(self):
-        intexp = expression(Int)
-        intexp2 = copy.deepcopy(intexp)
-        self.assertEqual(intexp, intexp2)
-    
-    def test_deep_copy_expressions_have_same_hash(self):
-        # this is a requirement for looking up productions for a particular type of
-        # expression in the expression grammar.
-        intexp = expression(Int)
-        intexp2 = copy.deepcopy(intexp)
-        self.assertEqual(hash(intexp), hash(intexp2))

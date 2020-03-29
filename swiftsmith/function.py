@@ -28,11 +28,13 @@ class Function(Token):
         # TODO: allow non-Int return types
         self.annotations["returntype"] = Int
 
-        scope.declare_func(
-            self.annotations["name"],
-            self.annotations["arguments"],
-            self.annotations["returntype"]
-        )
+        def declare_func():
+            scope.declare_func(
+                self.annotations["name"],
+                self.annotations["arguments"],
+                self.annotations["returntype"]
+            )
+        context.parent.defer(declare_func)
 
         def closure():
             for argument, datatype in arguments.items():
