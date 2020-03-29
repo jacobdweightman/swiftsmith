@@ -13,6 +13,7 @@ function finish {
     mv lib${NAME}.dylib generated 2> /dev/null
     mv ${NAME}.swiftdoc generated 2> /dev/null
     mv ${NAME}.swiftmodule generated 2> /dev/null
+    rm ${NAME}.swiftsourceinfo
 
     exit $err
 }

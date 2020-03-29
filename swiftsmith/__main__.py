@@ -26,16 +26,18 @@ print(x.string())
 from swiftsmith.expression import FunctionCall
 from swiftsmith.semantics import SemanticParseTree
 from swiftsmith.standard_library import Int
+from swiftsmith.names import identifier
 
 # break the link between rootscope and the standard library scopes
 rootscope.children = [rootscope.children[-1]]
 
-rootscope.declare("x", Int, False)
+argname = next(identifier)
+rootscope.declare(argname, Int, False)
 fname, ftype = rootscope.choose_function()
 mainbody = SemanticParseTree(FunctionCall(fname, ftype))
 mainbody.annotate(scope=rootscope)
 
 print(f"""
-public func main(_ x: Int) -> {ftype.returntype.name} {{
+public func main(_ {argname}: Int) -> {ftype.returntype.name} {{
     return {mainbody.string()}
 }}""")
