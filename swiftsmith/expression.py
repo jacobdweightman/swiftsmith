@@ -43,7 +43,7 @@ class Variable(Token):
 
     def annotate(self, scope: Scope, context: SemanticParseTree):
         try:
-            self.annotations["value"] = scope.choose_variable(datatype=self.datatype, mutable=self.mutable)
+            self.annotations["value"] = scope.choose_variable(datatype=self.datatype, mutable=self.mutable).name
         except IndexError:
             self.annotations["value"] = self.datatype.newvalue()
 

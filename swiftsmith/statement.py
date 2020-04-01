@@ -49,15 +49,41 @@ class Declaration(Token):
         mutability = "var" if self.mutable else "let"
         return f"DECLARATION<{mutability}, {self.datatype}>"
 
+class Variable(Token):
+    """Represents a variable as it would appear in an assignment."""
+    required_annotations = {"name"}
+
+    def __init__(self, datatype):
+        super().__init__()
+        self.datatype = datatype
+    
+    def annotate(self, scope: Scope, context: SemanticParseTree):
+        try:
+            variable = scope.choose_variable(datatype=self.datatype, mutable=True)
+        except IndexError:
+            # fall back to declaring a new variable
+            declaration = Declaration(self.datatype, mutable=True)
+            declaration.annotate(scope, context)
+            self.annotations["name"] = declaration.string()
+            return
+        
+        # pass the type along to the parent assignment, so that the expression on the
+        # right side of this assignment can infer its type.
+        context.parent.value.datatype = variable.datatype
+
+        self.annotations["name"] = variable.name
+
+    def string(self):
+        assert self.is_annotated()
+        return self.annotations["name"]
+
 ########################################
 #   Nonterminals                       #
 ########################################
 
-class Assignment(Nonterminal):
+class Assignment(SemanticNonterminal):
     """
     Represents a statement which assigns a value to a variable.
-
-    This nonterminal captures a 
 
     It will likely be useful later to be able to specify the type of an assignment, for
     instance in a metamorphic relation. In the meantime, passing `None` into `datatype`
@@ -69,7 +95,8 @@ class Assignment(Nonterminal):
         self.datatype = datatype
     
     def annotate(self, scope: Scope, context: SemanticParseTree):
-        assert self.datatype is not None, "assignment statement was not given a type."
+        #assert self.datatype is not None, "assignment statement was not given a type."
+        pass
     
     # By not overloading __eq__ and __hash__, assignments with different types compare
     # as equal and share productions in the grammar.
@@ -86,6 +113,9 @@ class Assignment(Nonterminal):
     def __repr__(self):
         return f"assignment<{self.datatype}>"
 
+class DeclarationAssignment(Assignment):
+    """Represents a declaration of a new variable, which may occur at file scope."""
+    pass
 
 statement = Nonterminal("STATEMENT")
 declaration = Nonterminal("DECLARATION")
@@ -97,8 +127,9 @@ declaration = Nonterminal("DECLARATION")
 statement_grammar = SemanticPCFG(
     Assignment(None),
     [
-        PProduction(Assignment(None), (EOL(), Declaration(None), " = ", Expression(None)), 0.3),
-        PProduction(Assignment(None), (EOL(), Declaration(None, mutable=True), " = ", Expression(None)), 0.3),
-        #PProduction(assignment, (EOL(), Variable(Int), " = ", expression(Int)), 0.7),
+        PProduction(DeclarationAssignment(None), (EOL(), Declaration(None), " = ", Expression(None)), 0.7),
+        PProduction(DeclarationAssignment(None), (EOL(), Declaration(None, mutable=True), " = ", Expression(None)), 0.3),
+        PProduction(Assignment(None), (EOL(), Variable(None), " = ", Expression(None)), 0.7),
+        PProduction(Assignment(None), (DeclarationAssignment(None),), 0.3),
     ]
 )

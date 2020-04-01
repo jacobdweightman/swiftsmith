@@ -70,7 +70,7 @@ class Scope(Tree):
         Note: throws an `IndexError` if no variables meet the criteria.
         """
         candidates = list(self.accessible_variables(name=name, datatype=datatype, mutable=mutable))
-        return random.choice(candidates).name
+        return random.choice(candidates)
     
     def accessible_functions(self, name=None, returntype=None):
         """
