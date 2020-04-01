@@ -1,6 +1,21 @@
 # SwiftSmith
 
-SwiftSmith is a tool for generating random, valid programs in the Swift programming language. It is part of an ongoing research project in testing the Swift compiler.
+SwiftSmith is a tool for generating random, valid programs in the Swift programming language. It is part of an ongoing research project in testing the Swift compiler. It attempts to make a few guarantees about the behavior of the generated programs:
+
+1. Generated programs are "finite" and program generation halts.
+2. Programs are valid in the sense that they compile successfully, though may (and probably do) contain warnings.
+3. All functions exposed by the generated programs can run on any inputs of the correct types, and will halt.
+
+## Supported Language Features
+
+SwiftSmith generates programs that use a subset of Swift language features. This makes it easier to control the structure of generated programs and ensure that the above requirements are met.
+
+Features that are currently supported are:
+* function declarations
+* variable declarations
+* enum type declarations without raw values
+* enum case declarations without associated values
+* if/else statements
 
 ## How to use it
 
@@ -12,7 +27,7 @@ python3 -m swiftsmith
 ```
 from the project's root directory, which will write the generated program to standard output.
 
-The program that is generated is determined by a seed for the random number generator, which may be specified as the first (and only) command line argument:
+The program that is generated is determined by a seed for the random number generator, which is given as a base64-encoded string which may be specified as the first (and only) command line argument. SwiftSmith guarantees that programs generated using the same seed are identical.
 ```
 python3 -m swiftsmith YOUR_SEED_HERE
 ```
