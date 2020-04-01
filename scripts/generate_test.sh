@@ -2,8 +2,10 @@
 
 SEED=$1
 
-sh scripts/generate_module.sh ${SEED} ModuleA
-sh scripts/generate_module.sh ${SEED} ModuleB -O
+python3 -m swiftsmith ${SEED} -mr unnecessary-addition -o generated/module
+
+sh scripts/generate_module.sh ModuleA -Onone
+sh scripts/generate_module.sh ModuleB -Osize
 
 python3 scripts/generate_harness.py > generated/harness.swift
 swiftc generated/harness.swift -I generated -L generated -lModuleA -lModuleB -o generated/test

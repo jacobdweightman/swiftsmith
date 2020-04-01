@@ -99,7 +99,9 @@ class Expression(Token):
 
     def __eq__(self, other):
         # Two expression symbols must be of the same datatype to be equal.
-        return super().__eq__(other) and self.datatype == other.datatype
+        return self.__class__ == other.__class__ and \
+               super().__eq__(other) and \
+               self.datatype == other.datatype
     
     def __hash__(self):
         # because we overload __eq__, we must overload __hash__ as well.

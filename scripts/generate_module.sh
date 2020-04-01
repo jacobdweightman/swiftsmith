@@ -1,8 +1,7 @@
 # Note: expected to be invoked from project root directory.
 
-SEED=$1
-NAME=$2
-ARGS=$3
+NAME=$1
+ARGS=$2
 
 function finish {
     # This program must finish cleaning up. Disable keyboard interrupts.
@@ -18,6 +17,5 @@ function finish {
     exit $err
 }
 
-python3 -m swiftsmith ${SEED} > generated/${NAME}.swift
 trap finish EXIT
 swiftc -emit-module -emit-library generated/${NAME}.swift ${ARGS} -suppress-warnings

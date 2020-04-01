@@ -37,6 +37,12 @@ Currently, the easiest way to save the generated program is to redirect the outp
 python3 -m swiftsmith YOUR_SEED_HERE >> randomprogram.swift
 ```
 
+## Metamorphic Testing With SwiftSmith
+
+Perhaps due to the limited set of supported language features, the generated programs were not good at revealing bugs in the Swift compiler (as of tag 0.0.1). In particular, in an experiment run on 75,214 programs, SwiftSmith detected 0 potential bugs in the compiler. This experiment was specifically looking for programs that would crash the compiler or produce different results between optimization levels. Even though this didn't reveal any bugs, it was, at least, a good test of SwiftSmith's robustness.
+
+An interesting adaptation of this approach is to compare a program against a transformed version of itself that should behave the same way. Such a semantics-preserving transformation is called a metamorphic relation (MR), and this testing approach is called metamorphic testing (MT). For instance, one possible MR is that, if `e` is an expression that occurs within a program, replacing `e` with `(e) + 0` yields an equivalent program.
+
 ## How it works
 
 SwiftSmith generates programs in three phases. The first phase takes a random walk on the productions of a context free grammar that describes the syntax of Swift. This is part of the program is largely based on the [official summary of the grammar](https://docs.swift.org/swift-book/ReferenceManual/zzSummaryOfTheGrammar.html). Ultimately, this phase produces an abstract syntax tree, where the leaves are strings or one of several token types.
