@@ -26,6 +26,24 @@ class EnumTests(unittest.TestCase):
         A.add_case("a", [av])
         self.assertEqual(A.newvalue(), "A.a(3)")
     
+    def test_get_enum_expression_with_generics(self):
+        generictype = DataType("GT")
+        A = EnumType("A", generic_types={generictype: None})
+        A.add_case("a", [generictype])
+        concretetype = DataType("CT")
+        concretetype.newvalue = unittest.mock.MagicMock(return_value="concrete")
+        self.assertEqual(
+            A.specialize(GT=concretetype).newvalue(),
+            "A<CT>.a(concrete)"
+        )
+    
+    def test_get_enum_expression_with_too_few_generics_throws(self):
+        generictype = DataType("GT")
+        A = EnumType("A", generic_types={generictype: None})
+        A.add_case("a", [generictype])
+        with self.assertRaises(AssertionError):
+            A.newvalue()
+
     def test_enum_in_scope(self):
         outer_scope = Scope()
         tree = SemanticParseTree("enum", [

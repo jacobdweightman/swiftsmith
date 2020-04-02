@@ -1,4 +1,5 @@
 from collections import namedtuple
+import copy
 import random
 from enum import Enum, IntEnum, auto
 
@@ -40,12 +41,14 @@ class DataType(object):
         access: AccessLevel=AccessLevel.internal,
         instance_methods = {},
         static_methods = {},
+        generic_types={},
         newvaluefactory=None,
     ):
         self.access = access
         self.name = name
         self.instance_methods = instance_methods
         self.static_methods = static_methods
+        self.generic_types = generic_types
         self._newvaluefactory = newvaluefactory
     
     def newvalue(self):
@@ -54,11 +57,43 @@ class DataType(object):
             return self._newvaluefactory()
         raise NotImplementedError()
     
+    def specialize(self, **kwargs):
+        """Creates a copy of this type with the given generics specialized."""
+        datatype = copy.deepcopy(self)
+        generics = {t.name: t for t in self.generic_types.keys()}
+        for gtname, ct in kwargs.items():
+            gt = generics[gtname]
+            datatype.generic_types[gt] = ct
+        return datatype
+    
+    def is_fully_specialized(self):
+        """Checks that all of this type's generics have been specialized."""
+        return None not in self.generic_types.values()
+    
+    def full_name(self):
+        """Returns the full name of the type, including generics."""
+        if len(self.generic_types) > 0:
+            genstr = "<" + ", ".join([t.name for t in self.generic_types.values()]) + ">"
+        else:
+            genstr = ""
+        return self.name + genstr
+
     def __eq__(self, other):
-        return type(self) == type(other) and self.name == other.name
+        return type(self) == type(other) and self.name == other.name \
+               and self.generic_types == other.generic_types
     
     def __hash__(self):
         return hash(self.name)
+    
+    def __str__(self):
+        accessstr = str(self.access)
+        if accessstr != "":
+            accessstr += " "
+        
+        return f"{accessstr}datatype {self.name}"
+    
+    def __repr__(self):
+        return str(self)
 
 
 class EnumType(DataType):
@@ -68,8 +103,8 @@ class EnumType(DataType):
     """
     Case = namedtuple("EnumCase", ["name", "associatedvalues"])
 
-    def __init__(self, name, access: AccessLevel=AccessLevel.internal):
-        super().__init__(name, access=access)
+    def __init__(self, name, access: AccessLevel=AccessLevel.internal, generic_types={}):
+        super().__init__(name, access=access, generic_types=generic_types)
         self.cases = {}
     
     def add_case(self, name, associatedvalues):
@@ -82,14 +117,22 @@ class EnumType(DataType):
     
     def newvalue(self):
         """Returns one of the cases of this enum as a string."""
+        assert self.is_fully_specialized()
         case = random.choice(list(self.cases.values()))
-        associatedvalues = [av.newvalue() for av in case.associatedvalues]
+
+        associatedvaluetypes = [t for t in case.associatedvalues]
+        for i, avt in enumerate(associatedvaluetypes):
+            if avt in self.generic_types:
+                associatedvaluetypes[i] = self.generic_types[avt]
+        
+        associatedvalues = [av.newvalue() for av in associatedvaluetypes]
         if len(associatedvalues) > 0:
             avstr = "(" + ", ".join(associatedvalues) + ")"
         else:
             avstr = ""
+        
         # TODO: handle enums nested inside of other types
-        return f"{self.name}.{case.name}{avstr}"
+        return f"{self.full_name()}.{case.name}{avstr}"
 
     def __str__(self):
         accessstr = str(self.access)
@@ -103,9 +146,15 @@ class EnumType(DataType):
 
 
 class FunctionType(DataType):
-    def __init__(self, arguments: dict, returntype: DataType, syntax: CallSyntax=CallSyntax.normal):
+    def __init__(
+        self,
+        arguments: dict,
+        returntype: DataType,
+        syntax: CallSyntax=CallSyntax.normal,
+        generic_types=[],
+    ):
         argstring = ", ".join([f"{n}: {t}" for n,t in arguments.items()])
-        super().__init__(name=f"({argstring}) -> {returntype}")
+        super().__init__(name=f"({argstring}) -> {returntype}", generic_types=generic_types)
         self.arguments = arguments
         self.returntype = returntype
 

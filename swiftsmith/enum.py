@@ -45,10 +45,10 @@ class Case(Token):
 
         # TODO: handle recursive ("indirect") enums.
         types = scope.accessible_types()
-        types.remove(scope.value)
         assert scope.value not in types
         try:
             associatedvalues = [random.choice(types) for _ in range(random.randint(0, 1))]
+            associatedvalues = [scope.specialize_type(t) for t in associatedvalues]
         except IndexError:
             associatedvalues = []
         self.annotations["associatedvalues"] = associatedvalues
@@ -59,7 +59,7 @@ class Case(Token):
         assert self.is_annotated()
         associatedvalues = self.annotations["associatedvalues"]
         if len(associatedvalues) > 0:
-            avstr = "(" + ", ".join(av.name for av in associatedvalues) + ")"
+            avstr = "(" + ", ".join(av.full_name() for av in associatedvalues) + ")"
         else:
             avstr = ""
         return self.annotations["name"] + avstr

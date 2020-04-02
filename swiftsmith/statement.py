@@ -28,6 +28,10 @@ class Declaration(Token):
 
         if self.datatype is None:
             self.datatype = scope.choose_type()
+        
+        if not self.datatype.is_fully_specialized():
+            self.datatype = scope.specialize_type(self.datatype)
+        
         # pass the type along to the parent assignment, so that the expression on the
         # right side of this assignment can infer its type.
         context.parent.value.datatype = self.datatype

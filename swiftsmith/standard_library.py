@@ -1,4 +1,4 @@
-from .types import AccessLevel, FunctionType, Struct, CallSyntax
+from .types import AccessLevel, DataType, EnumType, FunctionType, Struct, CallSyntax
 
 import random
 
@@ -12,6 +12,15 @@ Int = Struct(
     access=AccessLevel.public,
     newvaluefactory=lambda: str(random.randint(0, 5))
 )
+
+_Wrapped = DataType("Wrapped", access=AccessLevel.private)
+Optional = EnumType(
+    "Optional",
+    access=AccessLevel.public,
+    generic_types={_Wrapped: None}
+)
+Optional.add_case("some", [_Wrapped])
+Optional.add_case("none", [])
 
 Bool.static_methods[">"] = FunctionType({"left": Int, "right": Int}, Bool, syntax=CallSyntax.infix)
 Bool.static_methods["=="] = FunctionType({"left": Int, "right": Int}, Bool, syntax=CallSyntax.infix)

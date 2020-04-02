@@ -11,10 +11,12 @@ SwiftSmith is a tool for generating random, valid programs in the Swift programm
 SwiftSmith generates programs that use a subset of Swift language features. This makes it easier to control the structure of generated programs and ensure that the above requirements are met.
 
 Features that are currently supported are:
+* `Int`, `Bool`, and `Optional` from the standard library
 * function declarations
 * variable declarations
 * enum type declarations without raw values
-* enum case declarations without associated values
+* enum case declarations
+* enum case associated values
 * if/else statements
 
 ## How to use it

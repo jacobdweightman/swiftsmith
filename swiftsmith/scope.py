@@ -1,7 +1,7 @@
 from swiftsmith.grammar.parsetree import Tree, ParseTree
 from swiftsmith.grammar.pcfg import PCFG
 from swiftsmith.types import CallSyntax, DataType, FunctionType
-from swiftsmith.standard_library import Bool, Int
+from swiftsmith.standard_library import Bool, Int, Optional
 
 from collections import namedtuple
 import random
@@ -35,6 +35,7 @@ class Scope(Tree):
         """
         self.add_child(Scope(datatype=Bool))
         self.add_child(Scope(datatype=Int))
+        self.add_child(Scope(datatype=Optional))
 
     def declare(self, name, datatype, mutable):
         self.variables.append(Scope.Variable(name, datatype, mutable))
@@ -121,9 +122,23 @@ class Scope(Tree):
             
             if isinstance(enclosingscope.value, DataType):
                 types.append(enclosingscope.value)
-        return types
+        
+        # removing self prevents declaration of recursive types
+        return [t for t in types if t is not self.value]
     
     def choose_type(self):
         """Returns a random Swift type that is available in this lexical scope."""
         candidates = self.accessible_types()
         return random.choice(candidates)
+    
+    def specialize_type(self, datatype: DataType):
+        """Specializes a generic type using types accessible from this scope."""
+        unspecialized = {k for k,v in datatype.generic_types.items() if v is None}
+        types = list(filter(lambda t: len(t.generic_types) == 0, self.accessible_types()))
+        
+        specializations = {}
+        for t in unspecialized:
+            specializations[t.name] = random.choice(types)
+        
+        return datatype.specialize(**specializations)
+

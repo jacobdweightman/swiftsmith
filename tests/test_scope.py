@@ -1,7 +1,7 @@
 import unittest
 from swiftsmith import Scope
 from swiftsmith.types import EnumType, FunctionType
-from swiftsmith.standard_library import Bool, Int
+from swiftsmith.standard_library import Bool, Int, Optional
 
 class ScopeTests(unittest.TestCase):
     def test_declared_variable_is_accessible(self):
@@ -55,7 +55,7 @@ class ScopeTests(unittest.TestCase):
     def test_importing_standard_library_exposes_expected_values(self):
         scope = Scope()
         scope.import_standard_library()
-        self.assertSetEqual(set(scope.accessible_types()), {Bool, Int})
+        self.assertSetEqual(set(scope.accessible_types()), {Bool, Int, Optional})
         self.assertSetEqual(
             set(scope.accessible_functions().keys()),
             {"&+", "&*", ">", "=="},

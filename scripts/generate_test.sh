@@ -2,7 +2,7 @@
 
 SEED=$1
 
-python3 -m swiftsmith ${SEED} -mr unnecessary-addition -o generated/module
+python3 -m swiftsmith ${SEED} -mr unnecessary-multiplication -o generated/module
 
 sh scripts/generate_module.sh ModuleA -Onone
 sh scripts/generate_module.sh ModuleB -Osize

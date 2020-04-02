@@ -73,6 +73,8 @@ class Expression(Token):
             # Reading the type off of the parent node is adequate for now.
             self.datatype = context.parent.value.datatype
             self.annotations["datatype"] = self.datatype
+
+        assert self.datatype.is_fully_specialized(), f"{self.datatype}: {self.datatype.generic_types}"
         
         if random.random() < 0.5:
             if random.random() < 0.7:
