@@ -2,7 +2,6 @@ from .expression import Expression
 from .semantics import SemanticParseTree
 from .standard_library import Int
 
-import copy
 import random
 
 # A metamorphic relation describes the relationship between inputs and outputs of a
@@ -16,33 +15,33 @@ import random
 # able to detect potential miscompilations where these tranformations actually do
 # change program behavior.
 
-def unnecessary_addition(parsetree: SemanticParseTree) -> SemanticParseTree:
+def unnecessary_addition(parsetree: SemanticParseTree):
     """
     Given an `Int` expression `e`:
 
     `e` can be replaced in a program with `(e) + 0`
+    
+    Note: this function mutates the given parse tree.
     """
-    parsetree = copy.deepcopy(parsetree)
     intexpr = Expression(Int)
     candidates = [node for node in parsetree if node == intexpr]
     target = random.choice(candidates)
-    expressiontree = target.annotations["subtree"]
-    expressiontree = SemanticParseTree(intexpr, ["(", expressiontree, ") + 0"])
-    target.annotations["subtree"] = expressiontree
-    return parsetree
+    tree = target.annotations["subtree"]
+    newtree = SemanticParseTree(intexpr, ["(", tree, ") + 0"])
+    target.annotations["subtree"] = newtree
 
 
-def unnecessary_multiplication(parsetree: SemanticParseTree) -> SemanticParseTree:
+def unnecessary_multiplication(parsetree: SemanticParseTree):
     """
     Given an `Int` expression `e`:
 
     `e` can be replaced in a program with `(e) * 1`
+
+    Note: this function mutates the given parse tree.
     """
-    parsetree = copy.deepcopy(parsetree)
     intexpr = Expression(Int)
     candidates = [node for node in parsetree if node == intexpr]
     target = random.choice(candidates)
-    expressiontree = target.annotations["subtree"]
-    expressiontree = SemanticParseTree(intexpr, ["(", expressiontree, ") * 1"])
-    target.annotations["subtree"] = expressiontree
-    return parsetree
+    tree = target.annotations["subtree"]
+    newtree = SemanticParseTree(intexpr, ["(", tree, ") * 1"])
+    target.annotations["subtree"] = newtree

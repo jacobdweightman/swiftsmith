@@ -67,9 +67,6 @@ public func main(_ {argname}: Int) -> {ftype.returntype.name} {{
     return {mainbody.string()}
 }}"""
 
-if args.mr:
-    mtparsetree = args.mr(parsetree)
-
 ########################################
 #   File I/O                           #
 ########################################
@@ -88,6 +85,7 @@ def writemodule(suffix, code, main):
 
 if args.mr:
     writemodule("A", parsetree.string(), mainfunc)
-    writemodule("B", mtparsetree.string(), mainfunc)
+    args.mr(parsetree)
+    writemodule("B", parsetree.string(), mainfunc)
 else:
     writemodule("", parsetree.string(), mainfunc)
