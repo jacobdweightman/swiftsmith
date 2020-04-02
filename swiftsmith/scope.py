@@ -116,7 +116,7 @@ class Scope(Tree):
         for enclosingscope in self.ancestors():
             # including ancestors and their siblings
             for siblingscope in enclosingscope.children:
-                if isinstance(siblingscope.value, DataType):
+                if isinstance(siblingscope.value, DataType) and siblingscope is not self:
                     types.append(siblingscope.value)
             
             if isinstance(enclosingscope.value, DataType):

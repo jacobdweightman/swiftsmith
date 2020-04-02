@@ -66,32 +66,30 @@ class EnumType(DataType):
     Represents an enumeration datatype. This is a type whose values fit into one of a
     finite number of (enumerated) cases.
     """
-    Case = namedtuple("EnumCase", ["name", "raw_value"])
+    Case = namedtuple("EnumCase", ["name", "associatedvalues"])
 
     def __init__(self, name, access: AccessLevel=AccessLevel.internal):
         super().__init__(name, access=access)
         self.cases = {}
     
-    def add_case(self, name, raw_value=None):
+    def add_case(self, name, associatedvalues):
         """
         Adds a case with the given name to the enum.
         
         Note: this should only be called from inside the enum definition subtree.
         """
-        self.cases[name] = EnumType.Case(name, raw_value)
+        self.cases[name] = EnumType.Case(name, associatedvalues)
     
     def newvalue(self):
         """Returns one of the cases of this enum as a string."""
         case = random.choice(list(self.cases.values()))
+        associatedvalues = [av.newvalue() for av in case.associatedvalues]
+        if len(associatedvalues) > 0:
+            avstr = "(" + ", ".join(associatedvalues) + ")"
+        else:
+            avstr = ""
         # TODO: handle enums nested inside of other types
-        return f"{self.name}.{case.name}"
-    
-    def case_with_raw_value(self, value):
-        """Returns the case with the given raw value."""
-        for case in self.cases.values():
-            if case.raw_value == value:
-                # TODO: handle enums nested inside of other types
-                return f"{self.name}.{case.name}"
+        return f"{self.name}.{case.name}{avstr}"
 
     def __str__(self):
         accessstr = str(self.access)

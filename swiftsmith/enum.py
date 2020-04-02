@@ -36,17 +36,33 @@ class Enum(Token):
 
 
 class Case(Token):
-    required_annotations = set(["name"])
+    required_annotations = set(["name", "associatedvalues"])
 
     def annotate(self, scope: Scope, context: SemanticParseTree):
         assert isinstance(scope.value, EnumType)
         name = next(identifier)
-        scope.value.add_case(name)
         self.annotations["name"] = name
+
+        # TODO: handle recursive ("indirect") enums.
+        types = scope.accessible_types()
+        types.remove(scope.value)
+        assert scope.value not in types
+        try:
+            associatedvalues = [random.choice(types) for _ in range(random.randint(0, 1))]
+        except IndexError:
+            associatedvalues = []
+        self.annotations["associatedvalues"] = associatedvalues
+
+        scope.value.add_case(name, associatedvalues)
     
     def string(self):
         assert self.is_annotated()
-        return self.annotations["name"]
+        associatedvalues = self.annotations["associatedvalues"]
+        if len(associatedvalues) > 0:
+            avstr = "(" + ", ".join(av.name for av in associatedvalues) + ")"
+        else:
+            avstr = ""
+        return self.annotations["name"] + avstr
 
 ########################################
 #   Nonterminals                       #
