@@ -1,3 +1,4 @@
+from .access import AccessModifier
 from .grammar import Nonterminal, PProduction
 from .scope import Scope
 from .branch import branch_statement
@@ -7,6 +8,7 @@ from .statement import Assignment
 from .semantics import Token, PCFG, SemanticParseTree, SemanticNonterminal
 from .names import identifier
 from .standard_library import Int
+from .types import AccessLevel
 
 import random
 
@@ -15,6 +17,7 @@ import random
 ########################################
 
 class Function(Token):
+    """Represents a function signature as it appears in a function declaration."""
     required_annotations = set(["name", "arguments", "returntype"])
 
     def annotate(self, scope: Scope, context: SemanticParseTree):
@@ -55,7 +58,23 @@ class Function(Token):
 #   Nonterminals                       #
 ########################################
 
-funcdeclaration = Nonterminal("FUNC_DECLARATION")
+class FuncDeclaration(SemanticNonterminal):
+    """
+    Represents a complete function declaration in Swift.
+    
+    By default, its access level is internal, but the access level may be overridden by
+    modifying its "access" annotation.
+    """
+    required_annotations = {"access"}
+
+    def __init__(self, default_access: AccessLevel=AccessLevel.internal):
+        super().__init__()
+        self.annotations["access"] = default_access
+    
+    def annotate(self, scope: Scope, context: SemanticParseTree):
+        pass
+
+
 block = Nonterminal("FUNC_BLOCK")
 statements = Nonterminal("FUNC_STATEMENTS")
 statement = Nonterminal("FUNC_STATEMENT")
@@ -65,9 +84,9 @@ statement = Nonterminal("FUNC_STATEMENT")
 ########################################
 
 function_grammar = PCFG(
-    funcdeclaration,
+    FuncDeclaration(),
     [
-        PProduction(funcdeclaration, (EOL(), EOL(), "func ", Function(), " {", block, EOL(), "}"), 1.0),
+        PProduction(FuncDeclaration(), (EOL(), EOL(), AccessModifier(), "func ", Function(), " {", block, EOL(), "}"), 1.0),
         PProduction(block, (Block(), statements), 1.0),
 
         PProduction(statements, (statement, statements), 0.7),

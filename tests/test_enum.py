@@ -59,5 +59,4 @@ class EnumTests(unittest.TestCase):
         enumscope = outer_scope.children[0]
         enumtype = enumscope.value
         self.assertEqual(len(enumtype.cases), 2)
-
-        # TODO: how to read which enums are in scope of enclosing?
+        self.assertIn(enumtype, outer_scope.accessible_types())

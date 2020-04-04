@@ -5,11 +5,40 @@ from enum import Enum, IntEnum, auto
 
 class AccessLevel(IntEnum):
     """Represents the possible access control levels."""
-    private = 0
-    fileprivate = 1 # This is equivalent to internal in a single-file module.
-    internal = 1
-    public = 2
-    open = 2
+    # Hidden to all other scopes (e.g. symbol declared inside a function)
+    local = 0
+
+    # Accessible only to child scopes.
+    private = 1
+
+    # Accessible to any scope in the same file.
+    fileprivate = 2
+
+    # Accessible to any scope in the same module.
+    internal = 3
+
+    # Accessible to any scope in the same module or an importing module.
+    public = 4
+
+    @classmethod
+    def random(cls, at_least=1, at_most=None):
+        """
+        Picks a random access level.
+
+        If at_least is specified, the chosen access level will be at least as broad as
+        the given access level.
+
+        If at_most is specified, the chosen access level will be at most as broad as
+        the given access level.
+        """
+        candidates = list(cls)
+
+        if at_least is not None:
+            candidates = filter(lambda a: a >= at_least, candidates)
+        if at_most is not None:
+            candidates = filter(lambda a: a <= at_most, candidates)
+
+        return random.choice(list(candidates))
 
     def __str__(self):
         if self == AccessLevel.private:
@@ -20,8 +49,6 @@ class AccessLevel(IntEnum):
             return ""
         elif self == AccessLevel.public:
             return "public"
-        elif self == AccessLevel.open:
-            return "open"
         raise NotImplementedError()
 
 
