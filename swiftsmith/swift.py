@@ -5,6 +5,7 @@ from .function import function_grammar, FuncDeclaration
 from .statement import statement_grammar, DeclarationAssignment
 from .formatting import EOL
 from .semantics import SemanticPCFG
+from .types import AccessLevel
 
 S = Nonterminal("S")
 
@@ -15,7 +16,8 @@ swift = SemanticPCFG(
         PProduction(S, (DeclarationAssignment(None), S), 0.2),
         PProduction(S, (FuncDeclaration(), S), 0.2),
         PProduction(S, (enum, S), 0.2),
-        PProduction(S, (FuncDeclaration(),), 0.4), # Guarantee at least one function
+        # Guarantee at least one public function
+        PProduction(S, (FuncDeclaration(access=AccessLevel.public),), 0.4),
     ]
 ) + branch_grammar \
   + function_grammar \

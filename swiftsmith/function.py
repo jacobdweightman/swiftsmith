@@ -33,6 +33,7 @@ class Function(Token):
 
         def declare_func():
             scope.declare_func(
+                context.parent.value.annotations["access"],
                 self.annotations["name"],
                 self.annotations["arguments"],
                 self.annotations["returntype"]
@@ -63,13 +64,26 @@ class FuncDeclaration(SemanticNonterminal):
     Represents a complete function declaration in Swift.
     
     By default, its access level is internal, but the access level may be overridden by
-    modifying its "access" annotation.
-    """
-    required_annotations = {"access"}
+    modifying its "access" annotation via the `annotate` method of another node in the
+    parse tree.
 
-    def __init__(self, default_access: AccessLevel=AccessLevel.internal):
+    Specifying the access level sets the "locked" annotation which suggests to other
+    nodes in the parse tree that they should not modify the access level.
+    """
+    required_annotations = {"access", "locked"}
+
+    def __init__(
+        self,
+        access: AccessLevel=None,
+        default_access: AccessLevel=AccessLevel.internal
+    ):
         super().__init__()
-        self.annotations["access"] = default_access
+        if access is not None:
+            self.annotations["locked"] = True
+            self.annotations["access"] = access
+        else:
+            self.annotations["locked"] = False
+            self.annotations["access"] = default_access
     
     def annotate(self, scope: Scope, context: SemanticParseTree):
         pass

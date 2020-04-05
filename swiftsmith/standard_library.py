@@ -10,7 +10,7 @@ Bool = Struct(
 Int = Struct(
     "Int",
     access=AccessLevel.public,
-    newvaluefactory=lambda: str(random.randint(0, 5))
+    newvaluefactory=lambda: str(random.randint(-1000, 1000))
 )
 
 _Wrapped = DataType("Wrapped", access=AccessLevel.private)
@@ -22,8 +22,8 @@ Optional = EnumType(
 Optional.add_case("some", [_Wrapped])
 Optional.add_case("none", [])
 
-Bool.static_methods[">"] = FunctionType({"left": Int, "right": Int}, Bool, syntax=CallSyntax.infix)
-Bool.static_methods["=="] = FunctionType({"left": Int, "right": Int}, Bool, syntax=CallSyntax.infix)
+Bool.static_methods[">"] = FunctionType(AccessLevel.public, {"left": Int, "right": Int}, Bool, syntax=CallSyntax.infix)
+Bool.static_methods["=="] = FunctionType(AccessLevel.public, {"left": Int, "right": Int}, Bool, syntax=CallSyntax.infix)
 
-Int.static_methods["&+"] = FunctionType({"left": Int, "right": Int}, Int, syntax=CallSyntax.infix)
-Int.static_methods["&*"] = FunctionType({"left": Int, "right": Int}, Int, syntax=CallSyntax.infix)
+Int.static_methods["&+"] = FunctionType(AccessLevel.public, {"left": Int, "right": Int}, Int, syntax=CallSyntax.infix)
+Int.static_methods["&*"] = FunctionType(AccessLevel.public, {"left": Int, "right": Int}, Int, syntax=CallSyntax.infix)

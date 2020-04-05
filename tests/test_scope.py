@@ -1,6 +1,6 @@
 import unittest
 from swiftsmith import Scope
-from swiftsmith.types import EnumType, FunctionType
+from swiftsmith.types import AccessLevel, EnumType, FunctionType
 from swiftsmith.standard_library import Bool, Int, Optional
 
 class ScopeTests(unittest.TestCase):
@@ -11,11 +11,11 @@ class ScopeTests(unittest.TestCase):
     
     def test_declared_function_is_accessible(self):
         scope = Scope()
-        scope.declare_func("foo", {"x": Int}, Int)
+        scope.declare_func(AccessLevel.internal, "foo", {"x": Int}, Int)
         self.assertDictEqual(
             scope.accessible_functions(),
             {
-                "foo": FunctionType({"x": Int}, Int),
+                "foo": FunctionType(AccessLevel.internal, {"x": Int}, Int),
             }
         )
     
@@ -61,3 +61,21 @@ class ScopeTests(unittest.TestCase):
             {"&+", "&*", ">", "=="},
         )
         self.assertSetEqual(set(scope.accessible_variables()), set())
+    
+    def test_accessible_functions_access_level_filter(self):
+        scope = Scope()
+        scope.declare_func(AccessLevel.public, "foo", {}, Int)
+        scope.declare_func(AccessLevel.internal, "bar", {}, Int)
+        scope.declare_func(AccessLevel.private, "baz", {}, Int)
+        self.assertSetEqual(
+            set(scope.accessible_functions(at_least=AccessLevel.public).keys()),
+            {"foo"}
+        )
+        self.assertSetEqual(
+            set(scope.accessible_functions(at_least=AccessLevel.internal).keys()),
+            {"foo", "bar"}
+        )
+        self.assertSetEqual(
+            set(scope.accessible_functions(at_least=AccessLevel.private).keys()),
+            {"foo", "bar", "baz"}
+        )

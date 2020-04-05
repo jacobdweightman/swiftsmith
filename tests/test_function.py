@@ -1,5 +1,6 @@
 import unittest
-from swiftsmith.function import Function, block, Block
+from swiftsmith.access import AccessModifier
+from swiftsmith.function import Function, FuncDeclaration, block, Block
 from swiftsmith.scope import Scope
 from swiftsmith.semantics import SemanticParseTree, Token
 
@@ -16,7 +17,7 @@ class TestFunction(unittest.TestCase):
         outer_scope = Scope()
         function = Function()
         interceptor = Interceptor(None)
-        tree = SemanticParseTree("function", [
+        tree = SemanticParseTree(FuncDeclaration(), [
             function,
             SemanticParseTree(block, [
                 Block(),
@@ -32,3 +33,14 @@ class TestFunction(unittest.TestCase):
             
         interceptor.testclosure = testclosure
         tree.annotate(scope=outer_scope)
+    
+    def test_access_modifier_changes_function_access_level(self):
+        funcdeclaration = FuncDeclaration()
+        modifier = AccessModifier()
+        tree = SemanticParseTree(funcdeclaration, [modifier])
+        tree.annotate()
+        self.assertEqual(
+            funcdeclaration.annotations["access"],
+            modifier.annotations["access"]
+        )
+

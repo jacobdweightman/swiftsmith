@@ -1,6 +1,6 @@
 from swiftsmith.grammar.parsetree import Tree, ParseTree
 from swiftsmith.grammar.pcfg import PCFG
-from swiftsmith.types import CallSyntax, DataType, FunctionType
+from swiftsmith.types import AccessLevel, CallSyntax, DataType, FunctionType
 from swiftsmith.standard_library import Bool, Int, Optional
 
 from collections import namedtuple
@@ -40,8 +40,8 @@ class Scope(Tree):
     def declare(self, name, datatype, mutable):
         self.variables.append(Scope.Variable(name, datatype, mutable))
     
-    def declare_func(self, name, arguments, returntype):
-        self.functions[name] = FunctionType(arguments, returntype)
+    def declare_func(self, access, name, arguments, returntype):
+        self.functions[name] = FunctionType(access, arguments, returntype)
     
     def accessible_variables(self, name: str=None, datatype: DataType=None, mutable: bool=None):
         """
@@ -73,7 +73,7 @@ class Scope(Tree):
         candidates = list(self.accessible_variables(name=name, datatype=datatype, mutable=mutable))
         return random.choice(candidates)
     
-    def accessible_functions(self, name=None, returntype=None):
+    def accessible_functions(self, name=None, returntype=None, at_least: AccessLevel=None):
         """
         Returns a dictionary of functions that are accessible in this lexical scope.
         
@@ -97,11 +97,13 @@ class Scope(Tree):
             functions = dict(filter(lambda e: e[0] == name, functions.items()))
         if returntype is not None:
             functions = dict(filter(lambda e: e[1].returntype == returntype, functions.items()))
+        if at_least is not None:
+            functions = dict(filter(lambda e: e[1].access >= at_least, functions.items()))
         
         return functions
 
-    def choose_function(self, name=None, returntype=None):
-        candidates = self.accessible_functions(name=name, returntype=returntype)
+    def choose_function(self, name=None, returntype=None, at_least: AccessLevel=None):
+        candidates = self.accessible_functions(name=name, returntype=returntype, at_least=at_least)
         return random.choice(list(candidates.items()))
     
     def accessible_types(self):

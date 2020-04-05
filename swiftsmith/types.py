@@ -175,13 +175,14 @@ class EnumType(DataType):
 class FunctionType(DataType):
     def __init__(
         self,
+        access: AccessLevel,
         arguments: dict,
         returntype: DataType,
         syntax: CallSyntax=CallSyntax.normal,
         generic_types=[],
     ):
         argstring = ", ".join([f"{n}: {t}" for n,t in arguments.items()])
-        super().__init__(name=f"({argstring}) -> {returntype}", generic_types=generic_types)
+        super().__init__(name=f"({argstring}) -> {returntype}", access=access, generic_types=generic_types)
         self.arguments = arguments
         self.returntype = returntype
 
