@@ -31,14 +31,15 @@ class AccessLevel(IntEnum):
         If at_most is specified, the chosen access level will be at most as broad as
         the given access level.
         """
-        candidates = list(cls)
+        candidates = zip(list(cls), [0.0, 0.3, 0.1, 0.2, 0.4])
 
         if at_least is not None:
-            candidates = filter(lambda a: a >= at_least, candidates)
+            candidates = filter(lambda a: a[0] >= at_least, candidates)
         if at_most is not None:
-            candidates = filter(lambda a: a <= at_most, candidates)
+            candidates = filter(lambda a: a[0] <= at_most, candidates)
 
-        return random.choice(list(candidates))
+        candidates, weights = zip(*candidates)
+        return random.choices(candidates, weights=weights)[0]
 
     def __str__(self):
         if self == AccessLevel.private:

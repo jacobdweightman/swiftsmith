@@ -14,10 +14,10 @@ swift = SemanticPCFG(
     [
         # Allow variable declarations and functions at the top level of a program.
         PProduction(S, (DeclarationAssignment(None), S), 0.2),
-        PProduction(S, (FuncDeclaration(), S), 0.2),
+        PProduction(S, (FuncDeclaration(), S), 0.4),
         PProduction(S, (enum, S), 0.2),
         # Guarantee at least one public function
-        PProduction(S, (FuncDeclaration(access=AccessLevel.public),), 0.4),
+        PProduction(S, (FuncDeclaration(access=AccessLevel.public),), 0.2),
     ]
 ) + branch_grammar \
   + function_grammar \
