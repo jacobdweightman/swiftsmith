@@ -19,3 +19,5 @@ swiftc test.swift -I . -L . -lModuleA -lModuleB -o test
 
 install_name_tool -change libModuleA.dylib $(pwd)/libModuleA.dylib test
 install_name_tool -change libModuleB.dylib $(pwd)/libModuleB.dylib test
+
+./test
