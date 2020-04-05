@@ -1,17 +1,21 @@
 # Note: expected to be invoked from project root directory.
 
-SEED=$1
+DIR=$1
+SEED=$2
 
 python3 -m swiftsmith \
     ${SEED} \
     -mr unnecessary-multiplication \
-    -o generated/Module \
-    --tests generated/test.swift
+    -o ${DIR}/Module \
+    --tests ${DIR}/test.swift
 
-sh scripts/generate_module.sh ModuleA -Onone
-sh scripts/generate_module.sh ModuleB -Osize
+mkdir -p ${DIR}
+cd ${DIR}
 
-swiftc generated/test.swift -I generated -L generated -lModuleA -lModuleB -o generated/test
+swiftc -emit-module -emit-library ModuleA.swift -suppress-warnings
+swiftc -emit-module -emit-library ModuleB.swift -suppress-warnings
 
-install_name_tool -change libModuleA.dylib $(pwd)/generated/libModuleA.dylib generated/test
-install_name_tool -change libModuleB.dylib $(pwd)/generated/libModuleB.dylib generated/test
+swiftc test.swift -I . -L . -lModuleA -lModuleB -o test
+
+install_name_tool -change libModuleA.dylib $(pwd)/libModuleA.dylib test
+install_name_tool -change libModuleB.dylib $(pwd)/libModuleB.dylib test
