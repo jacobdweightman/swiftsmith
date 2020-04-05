@@ -1,4 +1,5 @@
 import argparse
+import base64
 import random
 import swiftsmith
 import sys
@@ -35,7 +36,12 @@ args = parser.parse_args()
 #   Program Generation                 #
 ########################################
 
-random.seed(args.seed)
+def decode_seed(b64str: str):
+    binarystr = base64.b64decode(b64str)
+    return int.from_bytes(binarystr, 'big', signed=False)
+
+seed = decode_seed(args.seed)
+random.seed(seed)
 
 parsetree = swiftsmith.swift.randomtree()
 
@@ -76,7 +82,6 @@ def writetests(file):
     f.write(f"import {modulename}A\n")
     f.write(f"import {modulename}B\n\n")
 
-    print(len(rootscope.accessible_functions(at_least=swiftsmith.AccessLevel.public)))
     for _ in range(50):
         fname, ftype = rootscope.choose_function(at_least=swiftsmith.AccessLevel.public)
         call = SemanticParseTree(FunctionCall(fname, ftype), [])

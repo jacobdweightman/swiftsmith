@@ -1,5 +1,3 @@
-START_SEED?=AA==
-
 .PHONY: all
 all:
 	python3 scripts/run_tests.py $(START_SEED)
