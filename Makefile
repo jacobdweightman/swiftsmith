@@ -1,6 +1,10 @@
 .PHONY: all
 all:
-	python3 scripts/run_tests.py $(START_SEED)
+	python3 scripts/run_tests_parallel.py
+
+.PHONY: serial
+serial:
+	python3 scripts/run_tests.py
 
 .PHONY: test
 test:

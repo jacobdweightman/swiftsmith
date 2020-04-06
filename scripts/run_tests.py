@@ -16,5 +16,5 @@ print("Running tests ad infinitum. Press ctrl+C to quit.")
 iteration = 0
 for seed in seeds():
     print("iteration:", iteration, "\tseed: ", seed)
-    subprocess.run(["sh", "scripts/run_test.sh", "generated1", seed], check=True)
+    subprocess.run(["sh", "scripts/run_test.sh", "generated", seed], check=True)
     iteration += 1
