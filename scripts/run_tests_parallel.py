@@ -1,5 +1,6 @@
 import base64
 from concurrent.futures import ThreadPoolExecutor
+import logging
 import os
 from queue import Queue
 import random
@@ -7,6 +8,8 @@ import signal
 import subprocess
 import sys
 from threading import Lock, Semaphore
+
+logging.basicConfig(filename="bug_candidates.txt", filemode='a')
 
 # The maximum number of processes to use.
 process_count = os.cpu_count()
@@ -57,9 +60,13 @@ def unit(queue: Queue):
     counter.increment()
     print("counter:", counter.value, "\tseed:", seed)
     if result.stdout:
-        print("[stdout]\n", result.stdout.decode("utf-8"))
+        logging.info("iteration: " + str(counter.value) + "\tseed: " + str(seed))
+        logging.info(result.stdout.decode("utf-8"))
+        print(result.stdout.decode("utf-8"))
     if result.stderr:
-        print("[stderr]\n", result.stderr.decode("utf-8"))
+        logging.info("iteration: " + str(counter.value) + "\tseed: " + str(seed))
+        logging.error(result.stderr.decode("utf-8"))
+        print(result.stderr.decode("utf-8"))
     return result.returncode
 
 if __name__ == '__main__':
