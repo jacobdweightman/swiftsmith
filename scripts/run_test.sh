@@ -3,13 +3,14 @@
 DIR=$1
 SEED=$2
 
+mkdir -p ${DIR}
+
 python3 -m swiftsmith \
     ${SEED} \
     -mr unnecessary-multiplication \
     -o ${DIR}/Module \
     --tests ${DIR}/test.swift
 
-mkdir -p ${DIR}
 cd ${DIR}
 
 swiftc -emit-module -emit-library ModuleA.swift -suppress-warnings
@@ -17,7 +18,6 @@ swiftc -emit-module -emit-library ModuleB.swift -suppress-warnings
 
 swiftc test.swift -I . -L . -lModuleA -lModuleB -o test
 
-install_name_tool -change libModuleA.dylib $(pwd)/libModuleA.dylib test
-install_name_tool -change libModuleB.dylib $(pwd)/libModuleB.dylib test
-
-./test
+# Import shared libraries from the working directory. This is necessary prior to Swift
+# 5.2, which is not yet available for ARM (and I don't want to build it myself).
+LD_LIBRARY_PATH=. ./test
