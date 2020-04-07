@@ -106,8 +106,12 @@ class Scope(Tree):
         candidates = self.accessible_functions(name=name, returntype=returntype, at_least=at_least)
         return random.choice(list(candidates.items()))
     
-    def accessible_types(self):
-        """Returns a list of all types that are accessible in this lexical scope."""
+    def accessible_types(self, at_least: AccessLevel=None):
+        """
+        Returns a list of all types that are accessible in this lexical scope.
+        
+        If `at_least` is given, only types that are that broadly accessible are returned.
+        """
         types = []
         # all nested types are accessible
         for nestedtype in self.preorder():
@@ -125,6 +129,9 @@ class Scope(Tree):
             if isinstance(enclosingscope.value, DataType):
                 types.append(enclosingscope.value)
         
+        if at_least is not None:
+            types = filter(lambda t: t.access >= at_least, types)
+        
         # removing self prevents declaration of recursive types
         return [t for t in types if t is not self.value]
     
@@ -133,10 +140,16 @@ class Scope(Tree):
         candidates = self.accessible_types()
         return random.choice(candidates)
     
-    def specialize_type(self, datatype: DataType):
+    def specialize_type(self, datatype: DataType, at_least: AccessLevel=None):
         """Specializes a generic type using types accessible from this scope."""
         unspecialized = {k for k,v in datatype.generic_types.items() if v is None}
-        types = list(filter(lambda t: len(t.generic_types) == 0, self.accessible_types()))
+
+        # Note: assumes there is at least one accessible non-generic type in scope. In
+        # practice, this will always be satisfied because of the Standard Library's Int.
+        types = list(filter(
+            lambda t: len(t.generic_types) == 0,
+            self.accessible_types(at_least=at_least)
+        ))
         
         specializations = {}
         for t in unspecialized:

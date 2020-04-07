@@ -1,6 +1,6 @@
 import unittest
 from swiftsmith import Scope
-from swiftsmith.types import AccessLevel, EnumType, FunctionType
+from swiftsmith.types import AccessLevel, DataType, EnumType, FunctionType
 from swiftsmith.standard_library import Bool, Int, Optional
 
 class ScopeTests(unittest.TestCase):
@@ -52,6 +52,27 @@ class ScopeTests(unittest.TestCase):
         parent.add_child(child)
         self.assertSetEqual(set(child.accessible_types()), {A})
     
+    def test_accessible_types_access_level_filter(self):
+        A = EnumType("A", access=AccessLevel.public)
+        B = EnumType("B", access=AccessLevel.internal)
+        C = EnumType("C", access=AccessLevel.fileprivate)
+        root = Scope()
+        root.add_child(Scope(None, A))
+        root.add_child(Scope(None, B))
+        root.add_child(Scope(None, C))
+        self.assertSetEqual(
+            set(root.accessible_types(at_least=AccessLevel.fileprivate)),
+            {A, B, C}
+        )
+        self.assertSetEqual(
+            set(root.accessible_types(at_least=AccessLevel.internal)),
+            {A, B}
+        )
+        self.assertSetEqual(
+            set(root.accessible_types(at_least=AccessLevel.public)),
+            {A}
+        )
+
     def test_importing_standard_library_exposes_expected_values(self):
         scope = Scope()
         scope.import_standard_library()
@@ -78,4 +99,25 @@ class ScopeTests(unittest.TestCase):
         self.assertSetEqual(
             set(scope.accessible_functions(at_least=AccessLevel.private).keys()),
             {"foo", "bar", "baz"}
+        )
+    
+    def test_specialize_generic_type(self):
+        scope = Scope()
+        GT = DataType("GT")
+        A = DataType("A", access=AccessLevel.internal)
+        scope.add_child(Scope(None, A))
+        B = DataType("B", generic_types={GT: None})
+        self.assertDictEqual(scope.specialize_type(B).generic_types, {GT: A})
+    
+    def test_specialize_generic_type_filter(self):
+        scope = Scope()
+        GT = DataType("GT")
+        A = DataType("A", access=AccessLevel.internal)
+        B = DataType("B", access=AccessLevel.public)
+        scope.add_child(Scope(None, A))
+        scope.add_child(Scope(None, B))
+        C = DataType("C", generic_types={GT: None})
+        self.assertDictEqual(
+            scope.specialize_type(C, at_least=AccessLevel.public).generic_types,
+            {GT: B}
         )

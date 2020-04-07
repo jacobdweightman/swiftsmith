@@ -21,19 +21,34 @@ class Function(Token):
     required_annotations = set(["name", "arguments", "returntype"])
 
     def annotate(self, scope: Scope, context: SemanticParseTree):
+        access = context.parent.value.annotations["access"]
         self.annotations["name"] = next(identifier)
+
+        # A function cannot be more visible than the types in its signature. For
+        # example, a public function cannot return a private type. In practice,
+        # there should always be at least one because of the Standard Library.
+        candidate_types = scope.accessible_types(at_least=access)
 
         arguments = {}
         for _ in range(random.randint(1, 3)):
-            arguments[next(identifier)] = Int
+            argtype = scope.specialize_type(
+                random.choice(candidate_types),
+                at_least=access
+            )
+            arguments[next(identifier)] = argtype
         self.annotations["arguments"] = arguments
 
         # TODO: allow non-Int return types
-        self.annotations["returntype"] = Int
+        returntype = scope.specialize_type(
+            random.choice(candidate_types),
+            at_least=access
+        )
+        self.annotations["returntype"] = returntype
+        context.parent.value.datatype = returntype
 
         def declare_func():
             scope.declare_func(
-                context.parent.value.annotations["access"],
+                access,
                 self.annotations["name"],
                 self.annotations["arguments"],
                 self.annotations["returntype"]
@@ -51,9 +66,9 @@ class Function(Token):
         arguments = self.annotations["arguments"]
         returntype = self.annotations["returntype"]
 
-        argstring = ', '.join(k + ": " + v.name for (k,v) in arguments.items())
+        argstring = ', '.join(k + ": " + v.full_name() for (k,v) in arguments.items())
         
-        return f"{name}({argstring}) -> {returntype.name}"
+        return f"{name}({argstring}) -> {returntype.full_name()}"
 
 ########################################
 #   Nonterminals                       #
@@ -78,6 +93,7 @@ class FuncDeclaration(SemanticNonterminal):
         default_access: AccessLevel=AccessLevel.internal
     ):
         super().__init__()
+        self.datatype = None
         if access is not None:
             self.annotations["locked"] = True
             self.annotations["access"] = access
@@ -104,7 +120,7 @@ function_grammar = PCFG(
         PProduction(block, (Block(), statements), 1.0),
 
         PProduction(statements, (statement, statements), 0.7),
-        PProduction(statements, (EOL(), "return ", Expression(Int)), 0.3),
+        PProduction(statements, (EOL(), "return ", Expression(None)), 0.3),
         PProduction(statement, (Assignment(None),), 0.7),
         PProduction(statement, (branch_statement,), 0.3)
     ]

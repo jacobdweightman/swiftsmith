@@ -13,9 +13,21 @@ class UnnecessaryArithmeticTests(unittest.TestCase):
         unnecessary_addition(tree)
         self.assertEqual(tree.string(), f"({original}) + 0")
     
+    def test_unnecessary_addition_no_int_expr(self):
+        tree = SemanticParseTree("asdf")
+        original = tree.string()
+        unnecessary_addition(tree)
+        self.assertEqual(tree.string(), original)
+    
     def test_unnecessary_multiplication(self):
         tree = SemanticParseTree(Expression(Int))
         tree.annotate()
         original = tree.string()
         unnecessary_multiplication(tree)
         self.assertEqual(tree.string(), f"({original}) * 1")
+    
+    def test_unnecessary_multiplication_no_int_expr(self):
+        tree = SemanticParseTree("asdf")
+        original = tree.string()
+        unnecessary_multiplication(tree)
+        self.assertEqual(tree.string(), original)

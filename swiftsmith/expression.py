@@ -69,11 +69,16 @@ class Expression(Token):
     
     def annotate(self, scope: Scope, context: SemanticParseTree):
         if "datatype" not in self.annotations:
-            # Currently, type inference on expressions is only used with assignments.
-            # Reading the type off of the parent node is adequate for now.
-            self.datatype = context.parent.value.datatype
-            self.annotations["datatype"] = self.datatype
-
+            # Current use cases for type inference on expressions:
+            #   * type of right side of assignment
+            #   * return statements
+            for ancestor in context.ancestors():
+                try:
+                    self.datatype = ancestor.value.datatype
+                    self.annotations["datatype"] = self.datatype
+                    break
+                except AttributeError:
+                    pass
         assert self.datatype.is_fully_specialized(), f"{self.datatype}: {self.datatype.generic_types}"
         
         if random.random() < 0.5:

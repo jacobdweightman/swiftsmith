@@ -3,6 +3,8 @@ from swiftsmith.access import AccessModifier
 from swiftsmith.function import Function, FuncDeclaration, block, Block
 from swiftsmith.scope import Scope
 from swiftsmith.semantics import SemanticParseTree, Token
+from swiftsmith.standard_library import Int
+from swiftsmith.types import AccessLevel, DataType, FunctionType
 
 class Interceptor(Token):
     def __init__(self, testclosure):
@@ -13,8 +15,14 @@ class Interceptor(Token):
 
 
 class TestFunction(unittest.TestCase):
+    def test_function_full_name(self):
+        GT = DataType("GT")
+        ftype = FunctionType(AccessLevel.internal, {"a": GT}, GT)
+        self.assertEqual(ftype.full_name(), "(a: GT) -> GT")
+    
     def test_function_parameters_in_scope(self):
         outer_scope = Scope()
+        outer_scope.add_child(Scope(None, Int))
         function = Function()
         interceptor = Interceptor(None)
         tree = SemanticParseTree(FuncDeclaration(), [

@@ -101,7 +101,8 @@ class DataType(object):
     def full_name(self):
         """Returns the full name of the type, including generics."""
         if len(self.generic_types) > 0:
-            genstr = "<" + ", ".join([t.name for t in self.generic_types.values()]) + ">"
+            gts = [ct if ct is not None else gt for gt,ct in self.generic_types.items()]
+            genstr = "<" + ", ".join([t.full_name() for t in gts]) + ">"
         else:
             genstr = ""
         return self.name + genstr
@@ -180,10 +181,10 @@ class FunctionType(DataType):
         arguments: dict,
         returntype: DataType,
         syntax: CallSyntax=CallSyntax.normal,
-        generic_types=[],
+        generic_types={},
     ):
-        argstring = ", ".join([f"{n}: {t}" for n,t in arguments.items()])
-        super().__init__(name=f"({argstring}) -> {returntype}", access=access, generic_types=generic_types)
+        argstring = ", ".join([f"{n}: {t.full_name()}" for n,t in arguments.items()])
+        super().__init__(name=f"({argstring}) -> {returntype.full_name()}", access=access, generic_types=generic_types)
         self.arguments = arguments
         self.returntype = returntype
 

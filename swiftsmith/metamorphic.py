@@ -25,6 +25,8 @@ def unnecessary_addition(parsetree: SemanticParseTree):
     """
     intexpr = Expression(Int)
     candidates = [node for node in parsetree if node == intexpr]
+    if len(candidates) == 0:
+        return
     target = random.choice(candidates)
     tree = target.annotations["subtree"]
     newtree = SemanticParseTree(intexpr, ["(", tree, ") + 0"])
@@ -41,6 +43,8 @@ def unnecessary_multiplication(parsetree: SemanticParseTree):
     """
     intexpr = Expression(Int)
     candidates = [node for node in parsetree if node == intexpr]
+    if len(candidates) == 0:
+        return
     target = random.choice(candidates)
     tree = target.annotations["subtree"]
     newtree = SemanticParseTree(intexpr, ["(", tree, ") * 1"])
