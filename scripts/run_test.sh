@@ -13,8 +13,8 @@ python3 -m swiftsmith \
 
 cd ${DIR}
 
-swiftc -emit-module -emit-library ModuleA.swift -suppress-warnings
-swiftc -emit-module -emit-library ModuleB.swift -suppress-warnings
+swiftc -emit-module -emit-library ModuleA.swift -suppress-warnings || exit 1
+swiftc -emit-module -emit-library ModuleB.swift -suppress-warnings || exit 1
 
 swiftc test.swift -I . -L . -lModuleA -lModuleB -o test
 

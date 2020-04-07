@@ -50,17 +50,16 @@ def unit(queue: Queue):
     result = subprocess.run([
         "sh", "scripts/run_test.sh", f"generated{dir_number}", seed],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=True
+        stderr=subprocess.PIPE
     )
     # release lock
     working_dirs.put(dir_number)
     counter.increment()
     print("counter:", counter.value, "\tseed:", seed)
     if result.stdout:
-        print("[stdout]\n", str(result.stdout))
+        print("[stdout]\n", result.stdout.decode("utf-8"))
     if result.stderr:
-        print("[stderr]\n", str(result.stderr))
+        print("[stderr]\n", result.stderr.decode("utf-8"))
     return result.returncode
 
 if __name__ == '__main__':
