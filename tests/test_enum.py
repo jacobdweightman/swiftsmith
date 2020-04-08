@@ -19,6 +19,11 @@ class EnumTests(unittest.TestCase):
         A.add_case("a", [])
         self.assertEqual(A.newvalue(), "A.a")
     
+    def test_get_enum_expression_with_inferred_type(self):
+        A = EnumType("A")
+        A.add_case("a", [])
+        self.assertEqual(A.newvalue(type_inferred=True), ".a")
+    
     def test_get_enum_expression_with_associated_value(self):
         A = EnumType("A")
         av = DataType("AV")

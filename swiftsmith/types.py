@@ -79,7 +79,7 @@ class DataType(object):
         self.generic_types = generic_types
         self._newvaluefactory = newvaluefactory
     
-    def newvalue(self):
+    def newvalue(self, type_inferred=False):
         """Returns an expression for a new value of this type."""
         if self._newvaluefactory is not None:
             return self._newvaluefactory()
@@ -144,7 +144,7 @@ class EnumType(DataType):
         """
         self.cases[name] = EnumType.Case(name, associatedvalues)
     
-    def newvalue(self):
+    def newvalue(self, type_inferred=False):
         """Returns one of the cases of this enum as a string."""
         assert self.is_fully_specialized()
         case = random.choice(list(self.cases.values()))
@@ -161,7 +161,10 @@ class EnumType(DataType):
             avstr = ""
         
         # TODO: handle enums nested inside of other types
-        return f"{self.full_name()}.{case.name}{avstr}"
+        if type_inferred:
+            return f".{case.name}{avstr}"
+        else:
+            return f"{self.full_name()}.{case.name}{avstr}"
 
     def __str__(self):
         accessstr = str(self.access)

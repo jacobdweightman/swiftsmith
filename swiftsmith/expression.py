@@ -18,13 +18,16 @@ class Value(Token):
     """
     required_annotations = {"value"}
 
-    def __init__(self, datatype: DataType):
+    def __init__(self, datatype: DataType, type_inferred=False):
         assert datatype is not None
         super().__init__()
         self.datatype = datatype
+        self.type_inferred = type_inferred
     
     def annotate(self, scope: Scope, context: SemanticParseTree):
-        self.annotations["value"] = self.datatype.newvalue()
+        self.annotations["value"] = self.datatype.newvalue(
+            type_inferred=self.type_inferred,
+        )
     
     def string(self):
         return self.annotations["value"]
@@ -36,16 +39,22 @@ class Value(Token):
 class Variable(Token):
     """Represents a constant or variable which may appear in an expression."""
     required_annotations = set(["value"])
-    def __init__(self, datatype, mutable=False):
+    def __init__(self, datatype, mutable=False, type_inferred=False):
         super().__init__()
         self.datatype = datatype
         self.mutable = mutable
+        self.type_inferred = type_inferred
 
     def annotate(self, scope: Scope, context: SemanticParseTree):
         try:
-            self.annotations["value"] = scope.choose_variable(datatype=self.datatype, mutable=self.mutable).name
+            self.annotations["value"] = scope.choose_variable(
+                datatype=self.datatype,
+                mutable=self.mutable
+            ).name
         except IndexError:
-            self.annotations["value"] = self.datatype.newvalue()
+            self.annotations["value"] = self.datatype.newvalue(
+                type_inferred=self.type_inferred,
+            )
 
     def string(self):
         assert self.is_annotated()
@@ -152,7 +161,7 @@ class FunctionCall(SemanticNonterminal):
             children = [name, "("]
             for argname, argtype in ftype.arguments.items():
                 children.append(f"{argname}: ")
-                children.append(Variable(argtype))
+                children.append(Variable(argtype, type_inferred=True))
                 children.append(", ")
             children[-1] = ")"
         elif ftype.syntax == CallSyntax.prefix:
