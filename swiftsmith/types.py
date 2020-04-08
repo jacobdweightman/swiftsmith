@@ -149,12 +149,12 @@ class EnumType(DataType):
         assert self.is_fully_specialized()
         case = random.choice(list(self.cases.values()))
 
-        associatedvaluetypes = [t for t in case.associatedvalues]
-        for i, avt in enumerate(associatedvaluetypes):
-            if avt in self.generic_types:
-                associatedvaluetypes[i] = self.generic_types[avt]
+        avt = [t for t in case.associatedvalues]
+        for i, t in enumerate(avt):
+            if t in self.generic_types:
+                avt[i] = self.generic_types[t]
         
-        associatedvalues = [av.newvalue() for av in associatedvaluetypes]
+        associatedvalues = [av.newvalue(type_inferred=type_inferred) for av in avt]
         if len(associatedvalues) > 0:
             avstr = "(" + ", ".join(associatedvalues) + ")"
         else:

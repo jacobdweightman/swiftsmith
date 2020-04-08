@@ -38,7 +38,6 @@ class Function(Token):
             arguments[next(identifier)] = argtype
         self.annotations["arguments"] = arguments
 
-        # TODO: allow non-Int return types
         returntype = scope.specialize_type(
             random.choice(candidate_types),
             at_least=access

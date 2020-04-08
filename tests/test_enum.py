@@ -1,7 +1,7 @@
 import unittest
 import unittest.mock
 
-from swiftsmith.enum import Case, Enum, statements
+from swiftsmith.enum import Case, Enum, EnumDeclaration, statements
 from swiftsmith.formatting import Block
 from swiftsmith.semantics import Scope, SemanticParseTree
 from swiftsmith.types import EnumType, DataType
@@ -51,7 +51,7 @@ class EnumTests(unittest.TestCase):
 
     def test_enum_in_scope(self):
         outer_scope = Scope()
-        tree = SemanticParseTree("enum", [
+        tree = SemanticParseTree(EnumDeclaration(), [
             Enum(),
             SemanticParseTree(statements, [
                 Case(),

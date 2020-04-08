@@ -87,7 +87,7 @@ def writetests(file):
         call = SemanticParseTree(FunctionCall(fname, ftype), [])
         call.annotate()
         # TODO: handle prefix, infix, and postfix functions
-        f.write(f"assert(ModuleA.{call.string()} == ModuleB.{call.string()})\n")
+        f.write(f"assert(ModuleA.{call.string()}.hashValue == ModuleB.{call.string()}.hashValue)\n")
 
 if args.mr:
     writemodule("A", parsetree.string())
