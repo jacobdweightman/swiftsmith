@@ -1,10 +1,10 @@
 import unittest
-from swiftsmith.access import AccessModifier
 from swiftsmith.function import Function, FuncDeclaration, block, Block
+from swiftsmith.modifier import AccessModifier, BindingModifier
 from swiftsmith.scope import Scope
 from swiftsmith.semantics import SemanticParseTree, Token
 from swiftsmith.standard_library import Int
-from swiftsmith.types import AccessLevel, DataType, FunctionType
+from swiftsmith.types import AccessLevel, Binding, DataType, FunctionType
 
 class Interceptor(Token):
     def __init__(self, testclosure):
@@ -51,4 +51,19 @@ class TestFunction(unittest.TestCase):
             funcdeclaration.annotations["access"],
             modifier.annotations["access"]
         )
-
+    
+    def test_static_function_declared_static(self):
+        T = DataType("T")
+        scope = Scope(None, T)
+        funcdeclaration = FuncDeclaration(binding=Binding.static)
+        tree = SemanticParseTree(funcdeclaration, [
+            BindingModifier(),
+            Function(),
+            SemanticParseTree(block, [Block()])
+        ])
+        tree.annotate(scope=scope)
+        declaration = tree.string()
+        self.assertTrue(declaration.startswith("static"))
+    
+    def test_static_function_foo(self):
+        pass

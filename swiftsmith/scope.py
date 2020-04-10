@@ -1,6 +1,6 @@
 from swiftsmith.grammar.parsetree import Tree, ParseTree
 from swiftsmith.grammar.pcfg import PCFG
-from swiftsmith.types import AccessLevel, CallSyntax, DataType, FunctionType
+from swiftsmith.types import AccessLevel, Binding, CallSyntax, DataType, FunctionType
 from swiftsmith.standard_library import Bool, Int, Optional
 
 from collections import namedtuple
@@ -16,14 +16,16 @@ class Scope(Tree):
     struct, but the value of the lexical scope of an if statement will be None. 
     """
     Variable = namedtuple("Variable", ["name", "datatype", "mutable"])
-    Function = namedtuple("Function", ["name", "arguments", "returntype"])
 
     def __init__(self, parent=None, datatype=None):
         super().__init__(datatype, {})
 
         self.parent = parent
         self.variables = []
+
+        # The names and types of unbound (local) functions in this scope.
         self.functions = {}
+
         self.next_scope = self
 
     def import_standard_library(self):
@@ -40,8 +42,13 @@ class Scope(Tree):
     def declare(self, name, datatype, mutable):
         self.variables.append(Scope.Variable(name, datatype, mutable))
     
-    def declare_func(self, access, name, arguments, returntype):
-        self.functions[name] = FunctionType(access, arguments, returntype)
+    def declare_func(self, access, name, arguments, returntype, binding=Binding.unbound):
+        if binding == Binding.unbound:
+            self.functions[name] = FunctionType(access, arguments, returntype)
+        elif binding == Binding.instance:
+            self.value.instance_methods[name] = FunctionType(access, arguments, returntype)
+        elif binding == Binding.static:
+            self.value.static_methods[name] = FunctionType(access, arguments, returntype)
     
     def accessible_variables(self, name: str=None, datatype: DataType=None, mutable: bool=None):
         """
@@ -88,10 +95,11 @@ class Scope(Tree):
                     functions[name] = f
 
         for _type in self.accessible_types():
-            for methodname, ftype in _type.static_methods.items():
-                if ftype.syntax == CallSyntax.normal:
-                    methodname = f"{_type.name}.{methodname}"
-                functions[methodname] = ftype
+            for methodname, f in _type.static_methods.items():
+                if f.access > AccessLevel.private:
+                    if f.syntax == CallSyntax.normal:
+                        methodname = f"{_type.name}.{methodname}"
+                    functions[methodname] = f
         
         if name is not None:
             functions = dict(filter(lambda e: e[0] == name, functions.items()))
@@ -106,7 +114,7 @@ class Scope(Tree):
         candidates = self.accessible_functions(name=name, returntype=returntype, at_least=at_least)
         return random.choice(list(candidates.items()))
     
-    def accessible_types(self, at_least: AccessLevel=None):
+    def accessible_types(self, at_least: AccessLevel=None, include_self=False):
         """
         Returns a list of all types that are accessible in this lexical scope.
         
@@ -131,9 +139,10 @@ class Scope(Tree):
         
         if at_least is not None:
             types = filter(lambda t: t.access >= at_least, types)
+        if not include_self:
+            types = filter(lambda t: t != self.value, types)
         
-        # removing self prevents declaration of recursive types
-        return [t for t in types if t is not self.value]
+        return list(types)
     
     def choose_type(self):
         """Returns a random Swift type that is available in this lexical scope."""

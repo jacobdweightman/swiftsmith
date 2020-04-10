@@ -1,14 +1,14 @@
-from .access import AccessModifier
 from .grammar import Nonterminal, PProduction
 from .scope import Scope
 from .branch import branch_statement
 from .expression import Expression
 from .formatting import EOL, Block
+from .modifier import AccessModifier, BindingModifier
 from .statement import Assignment
 from .semantics import Token, PCFG, SemanticParseTree, SemanticNonterminal
 from .names import identifier
 from .standard_library import Int
-from .types import AccessLevel
+from .types import AccessLevel, Binding
 
 import random
 
@@ -18,16 +18,17 @@ import random
 
 class Function(Token):
     """Represents a function signature as it appears in a function declaration."""
-    required_annotations = set(["name", "arguments", "returntype"])
+    required_annotations = set(["binding", "name", "arguments", "returntype"])
 
     def annotate(self, scope: Scope, context: SemanticParseTree):
         access = context.parent.value.annotations["access"]
+        self.annotations["binding"] = context.parent.value.annotations["binding"]
         self.annotations["name"] = next(identifier)
 
         # A function cannot be more visible than the types in its signature. For
         # example, a public function cannot return a private type. In practice,
         # there should always be at least one because of the Standard Library.
-        candidate_types = scope.accessible_types(at_least=access)
+        candidate_types = scope.accessible_types(at_least=access, include_self=True)
 
         arguments = {}
         for _ in range(random.randint(1, 3)):
@@ -50,7 +51,8 @@ class Function(Token):
                 access,
                 self.annotations["name"],
                 self.annotations["arguments"],
-                self.annotations["returntype"]
+                self.annotations["returntype"],
+                binding=self.annotations["binding"]
             )
         context.parent.defer(declare_func)
 
@@ -67,7 +69,7 @@ class Function(Token):
 
         argstring = ', '.join(k + ": " + v.full_name() for (k,v) in arguments.items())
         
-        return f"{name}({argstring}) -> {returntype.full_name()}"
+        return f"func {name}({argstring}) -> {returntype.full_name()}"
 
 ########################################
 #   Nonterminals                       #
@@ -84,15 +86,17 @@ class FuncDeclaration(SemanticNonterminal):
     Specifying the access level sets the "locked" annotation which suggests to other
     nodes in the parse tree that they should not modify the access level.
     """
-    required_annotations = {"access", "locked"}
+    required_annotations = {"access", "locked", "binding"}
 
     def __init__(
         self,
         access: AccessLevel=None,
-        default_access: AccessLevel=AccessLevel.internal
+        default_access: AccessLevel=AccessLevel.internal,
+        binding: Binding=Binding.unbound,
     ):
         super().__init__()
         self.datatype = None
+        self.annotations["binding"] = binding
         if access is not None:
             self.annotations["locked"] = True
             self.annotations["access"] = access
@@ -115,7 +119,7 @@ statement = Nonterminal("FUNC_STATEMENT")
 function_grammar = PCFG(
     FuncDeclaration(),
     [
-        PProduction(FuncDeclaration(), (EOL(), EOL(), AccessModifier(), "func ", Function(), " {", block, EOL(), "}"), 1.0),
+        PProduction(FuncDeclaration(), (EOL(), EOL(), AccessModifier(), BindingModifier(), Function(), " {", block, EOL(), "}"), 1.0),
         PProduction(block, (Block(), statements), 1.0),
 
         PProduction(statements, (statement, statements), 0.7),

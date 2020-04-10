@@ -72,6 +72,13 @@ class ScopeTests(unittest.TestCase):
             set(root.accessible_types(at_least=AccessLevel.public)),
             {A}
         )
+    
+    def test_accessible_types_include_self_filter(self):
+        A = EnumType("A")
+        root = Scope(datatype=A)
+        self.assertSetEqual(set(root.accessible_types()), set())
+        self.assertSetEqual(set(root.accessible_types(include_self=False)), set())
+        self.assertSetEqual(set(root.accessible_types(include_self=True)), {A})
 
     def test_importing_standard_library_exposes_expected_values(self):
         scope = Scope()
@@ -100,6 +107,15 @@ class ScopeTests(unittest.TestCase):
             set(scope.accessible_functions(at_least=AccessLevel.private).keys()),
             {"foo", "bar", "baz"}
         )
+
+    def test_accessible_functions_hides_private_static_methods(self):
+        root = Scope()
+        A = DataType("A", static_methods={
+            "a": FunctionType(AccessLevel.private, {}, Int),
+            "b": FunctionType(AccessLevel.fileprivate, {}, Int),
+        })
+        root.add_child(Scope(datatype=A))
+        self.assertSetEqual({"A.b"}, set(root.accessible_functions().keys()))
     
     def test_specialize_generic_type(self):
         scope = Scope()

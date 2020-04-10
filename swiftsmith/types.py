@@ -53,6 +53,27 @@ class AccessLevel(IntEnum):
         raise NotImplementedError()
 
 
+class Binding(Enum):
+    # The function is not bound to a type
+    unbound = auto()
+
+    # The function is an instance method of its enclosing type
+    instance = auto()
+
+    # the function is a static method of its enclsing type
+    static = auto()
+
+    def __str__(self):
+        if self == Binding.unbound:
+            return ""
+        elif self == Binding.instance:
+            return ""
+        elif self == Binding.static:
+            return "static"
+        else:
+            raise NotImplementedError()
+
+
 class CallSyntax(Enum):
     """Represents the possible function call syntaxes."""
     normal = auto()
@@ -67,16 +88,16 @@ class DataType(object):
         self,
         name: str,
         access: AccessLevel=AccessLevel.internal,
-        instance_methods = {},
-        static_methods = {},
-        generic_types={},
+        instance_methods: dict=None,
+        static_methods: dict=None,
+        generic_types: dict=None,
         newvaluefactory=None,
     ):
         self.access = access
         self.name = name
-        self.instance_methods = instance_methods
-        self.static_methods = static_methods
-        self.generic_types = generic_types
+        self.instance_methods = {} if instance_methods is None else instance_methods
+        self.static_methods = {} if static_methods is None else static_methods
+        self.generic_types = {} if generic_types is None else generic_types
         self._newvaluefactory = newvaluefactory
     
     def newvalue(self, type_inferred=False):

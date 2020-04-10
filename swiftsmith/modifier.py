@@ -1,6 +1,6 @@
 from .scope import Scope
 from .semantics import SemanticParseTree, Token
-from .types import AccessLevel
+from .types import AccessLevel, Binding
 
 ########################################
 #   Tokens                             #
@@ -30,3 +30,18 @@ class AccessModifier(Token):
         if accessstr != "":
             accessstr += " "
         return accessstr 
+
+
+class BindingModifier(Token):
+    """Represents a binding modifier as it would appear in a symbol declaration."""
+    required_annotations = {"binding"}
+    
+    def annotate(self, scope: Scope, context: SemanticParseTree):
+        self.annotations["binding"] = context.parent.value.annotations["binding"]
+
+    def string(self):
+        assert self.is_annotated()
+        bindingstr = str(self.annotations["binding"])
+        if bindingstr != "":
+            bindingstr += " "
+        return bindingstr

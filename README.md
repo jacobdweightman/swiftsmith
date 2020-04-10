@@ -17,6 +17,7 @@ Features that are currently supported are:
 * enum type declarations without raw values
 * enum case declarations
 * enum case associated values
+* static methods
 * if/else statements
 
 ## How to use it

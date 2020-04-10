@@ -1,10 +1,11 @@
-from .access import AccessModifier
 from .formatting import EOL
+from .function import FuncDeclaration
 from .grammar import Nonterminal, PProduction
+from .modifier import AccessModifier
 from .names import identifier
 from .semantics import Token, SemanticNonterminal, SemanticParseTree, SemanticPCFG
 from .scope import Scope
-from .types import AccessLevel, EnumType
+from .types import AccessLevel, Binding, EnumType
 
 import random
 
@@ -30,7 +31,7 @@ class Enum(Token):
 
         def closure():
             scope.next_scope = scope
-        context.parent.childwhere(lambda n: n.value == statements).defer(closure)
+        context.parent.childwhere(lambda n: n.value == case_statements).defer(closure)
 
     def string(self):
         assert self.is_annotated()
@@ -103,7 +104,10 @@ class EnumDeclaration(SemanticNonterminal):
     def annotate(self, scope: Scope, context: SemanticParseTree):
         pass
 
-statements = Nonterminal("ENUM_STATEMENTS")
+case_statements = Nonterminal("ENUM_CASE_STATEMENTS")
+case_statement = Nonterminal("ENUM_CASE_STATEMENT")
+static_func_decls = Nonterminal("ENUM_STATIC_FUNC_DECLS")
+static_func_decl = Nonterminal("ENUM_STATIC_FUNC_DECL")
 statement = Nonterminal("ENUM_STATEMENT")
 
 ########################################
@@ -113,9 +117,13 @@ statement = Nonterminal("ENUM_STATEMENT")
 enum_grammar = SemanticPCFG(
     EnumDeclaration(),
     [
-        PProduction(EnumDeclaration(), (EOL(), EOL(), AccessModifier(), "enum ", Enum(), ": Hashable {", statements, EOL(), "}"), 1.0),
-        PProduction(statements, (statement, statements), 0.5),
-        PProduction(statements, (statement,), 0.5),
-        PProduction(statement, (EOL(), "case ", Case()), 1.0)
+        PProduction(EnumDeclaration(), (EOL(), EOL(), AccessModifier(), "enum ", Enum(), ": Hashable {", case_statements, EOL(), "}"), 1.0),
+        
+        PProduction(case_statements, (case_statement, case_statements), 0.5),
+        PProduction(case_statements, (case_statement, static_func_decls), 0.5),
+        PProduction(case_statement, (EOL(), "case ", Case()), 1.0),
+
+        PProduction(static_func_decls, (FuncDeclaration(binding=Binding.static), static_func_decls), 0.5),
+        PProduction(static_func_decls, (), 0.5),
     ]
 )
