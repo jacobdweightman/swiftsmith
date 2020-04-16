@@ -7,7 +7,7 @@ mkdir -p ${DIR}
 
 python3 -m swiftsmith \
     ${SEED} \
-    -mr unnecessary-multiplication \
+    -mr failable-init \
     -o ${DIR}/Module \
     --tests ${DIR}/test.swift
 

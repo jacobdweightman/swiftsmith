@@ -25,14 +25,32 @@ class ParseTreeTest(unittest.TestCase):
         b = ParseTree(4, [ParseTree(6)])
         self.assertFalse(b.isleaf())
     
-    def test_preorder(self):
+    def test_preorder_values(self):
         a = ParseTree(1, [ParseTree(2), ParseTree(3, [ParseTree(4)]), ParseTree(5)])
         for i,j in zip(a.preorder(), [1, 2, 3, 4, 5]):
             self.assertEqual(i, j)
     
-    def test_postorder(self):
+    def test_preorder_subtrees(self):
+        two = ParseTree(2)
+        four = ParseTree(4)
+        three = ParseTree(3, [four])
+        five = ParseTree(5)
+        one = ParseTree(1, [two, three, five])
+        for i,j in zip(one.preorder(values=False), [one, two, three, four, five]):
+            self.assertEqual(i, j)
+    
+    def test_postorder_values(self):
         a = ParseTree(1, [ParseTree(2), ParseTree(3, [ParseTree(4)]), ParseTree(5)])
         for i,j in zip(a.postorder(), [2, 4, 3, 5, 1]):
+            self.assertEqual(i, j)
+    
+    def test_postorder_subtrees(self):
+        two = ParseTree(2)
+        four = ParseTree(4)
+        three = ParseTree(3, [four])
+        five = ParseTree(5)
+        one = ParseTree(1, [two, three, five])
+        for i,j in zip(one.postorder(values=False), [two, four, three, five, one]):
             self.assertEqual(i, j)
     
     def test_parent(self):

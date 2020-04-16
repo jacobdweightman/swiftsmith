@@ -4,7 +4,7 @@ import random
 import swiftsmith
 import sys
 
-from swiftsmith.metamorphic import unnecessary_addition, unnecessary_multiplication
+from swiftsmith.metamorphic import failable_initializer, unnecessary_addition, unnecessary_multiplication
 
 version = "v0.0.2"
 
@@ -20,6 +20,8 @@ def mr(name):
         return unnecessary_addition
     elif name == "unnecessary-multiplication":
         return unnecessary_multiplication
+    elif name == "failable-init":
+        return failable_initializer
     else:
         raise NotImplementedError(f"No MR named '{name}'")
 

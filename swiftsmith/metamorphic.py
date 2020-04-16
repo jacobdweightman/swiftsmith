@@ -1,3 +1,4 @@
+from .enum import case_statements, Enum, EnumDeclaration
 from .expression import Expression
 from .semantics import SemanticParseTree
 from .standard_library import Int
@@ -49,3 +50,36 @@ def unnecessary_multiplication(parsetree: SemanticParseTree):
     tree = target.annotations["subtree"]
     newtree = SemanticParseTree(intexpr, ["(", tree, ") * 1"])
     target.annotations["subtree"] = newtree
+
+def failable_initializer(parsetree: SemanticParseTree):
+    """
+    Given an enum `A` and an expression `e` of type `A`:
+
+    `A` can be given the following failable initializer:
+    ```
+    init?() {
+        self = e
+    }
+    ```
+    and `e` can be replaced with `.init()!`
+    """
+    enum_declarations = [n for n in parsetree.preorder(values=False)
+                         if isinstance(n.value, EnumDeclaration)]
+    if len(enum_declarations) == 0:
+        print("uh oh 1")
+        return
+    enum_declaration = random.choice(enum_declarations)
+    enum = enum_declaration.childwhere(lambda n: isinstance(n.value, Enum))
+    A = enum.value.annotations["type"]
+    exprA = Expression(A)
+    expressions = [n for n in parsetree if n == exprA]
+    if len(expressions) == 0:
+        print("uh oh 2")
+        return
+    expression = random.choice(expressions)
+
+    enum_body = enum_declaration.childwhere(lambda n: n.value == case_statements)
+    enum_body.children = [
+        SemanticParseTree(f"init?() {{ self = {expression.string()} }}\n\n\t"),
+    ] + enum_body.children
+    expression.annotations["subtree"] = SemanticParseTree(".init()!")

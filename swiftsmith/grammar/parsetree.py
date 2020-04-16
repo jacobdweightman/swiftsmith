@@ -46,19 +46,37 @@ class Tree(object):
         """True if this tree does not have children."""
         return self.children is None
     
-    def preorder(self):
-        """A generator of the preorder traversal of this tree."""
-        yield self.value
+    def preorder(self, values=True):
+        """
+        A generator of the preorder traversal of this tree.
+        
+        If `values`, then it produces the values of the nodes in the tree. Otherwise,
+        it produces references to the nodes of the tree.
+        """
+        if values:
+            yield self.value
+        else:
+            yield self
+        
         if self.children:
             for child in self.children:
-                yield from child.preorder()
+                yield from child.preorder(values=values)
     
-    def postorder(self):
-        """A generator of the postorder traversal of this tree."""
+    def postorder(self, values=True):
+        """
+        A generator of the postorder traversal of this tree.
+        
+        If `values`, then it produces the values of the nodes in the tree. Otherwise,
+        it produces references to the nodes of the tree.
+        """
         if self.children:
             for child in self.children:
-                yield from child.postorder()
-        yield self.value
+                yield from child.postorder(values=values)
+        
+        if values:
+            yield self.value
+        else:
+            yield self
     
     def __contains__(self, value):
         """
